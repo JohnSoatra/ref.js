@@ -9,7 +9,7 @@
     "type": "git",
     "url": "https://github.com/JohnSoatra/refjs"
   },
-  "main": "dist/index.cjs.js",
+  "main": "dist/index.cjs.cjs",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "files": [
