@@ -1,4 +1,5 @@
 import createProxy, { CacheProxy, CacheShallow } from "./createProxy";
+import MutationMethods from "../constants/mutationMethods";
 import Symbols from "../constants/symbols";
 import { OnChange } from "../ref";
 
@@ -18,15 +19,16 @@ export function getRaw(proxy: any): object | undefined {
   return proxy[Symbols.RawObject];
 }
 
-export function mutationMethod(obj: any, key: string) {
-  const list = Object.getPrototypeOf(obj).constructor;
+export function mutationMethod(obj: object, key: string) {
+  const constructor = Object.getPrototypeOf(obj).constructor;
+  const list = MutationMethods.get(constructor);
   return list ? list.includes(key) : false;
 }
 
 export function toProxies(
   cacheProxy: CacheProxy,
   cacheShallow: CacheShallow,
-  onChange: OnChange | undefined,
+  onChange: OnChange,
   ...args: any[]
 ) {
   let array:any[] = [];

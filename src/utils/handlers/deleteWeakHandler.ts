@@ -8,7 +8,7 @@ export default function deleteWeakMapHandler(
   key: object,
   cacheProxy: CacheProxy,
   cacheShallow: CacheShallow,
-  onChange: OnChange | undefined,
+  onChange: OnChange,
 ) {
   let deleted = value.delete(key);
 
@@ -21,7 +21,7 @@ export default function deleteWeakMapHandler(
   }
 
   if (deleted) {
-    onChange?.({
+    onChange({
       target: proxy,
       action: 'delete',
       key,

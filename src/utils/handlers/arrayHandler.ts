@@ -8,7 +8,7 @@ export default function arrayHandler(
   value: any[],
   cacheProxy: CacheProxy,
   cacheShallow: CacheShallow,
-  onChange: OnChange | undefined,
+  onChange: OnChange,
 ) {
   let shallow: any[];
 

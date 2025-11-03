@@ -20,8 +20,12 @@ function ref<T>(initial?: T, onchange?: OnChange): Ref<T | undefined> {
   const cacheProxy = new WeakMap();
   const cacheShallow = new WeakMap();
 
+  const handleChange: OnChange = (props) => {
+    onChange?.(props);
+  }
+
   return new Proxy(
-    createProxy({ value: initial }, cacheProxy, cacheShallow, onChange), {
+    createProxy({ value: initial }, cacheProxy, cacheShallow, handleChange), {
     get(target, key, receiver) {
       if (key === Keys.OnChange) {
         return onChange;

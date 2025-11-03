@@ -7,7 +7,7 @@ export default function getWeakMapHandler(
   key: object,
   cacheProxy: CacheProxy,
   cacheShallow: CacheShallow,
-  onChange: OnChange | undefined,
+  onChange: OnChange,
 ) {
   let result = value.get(key);
 

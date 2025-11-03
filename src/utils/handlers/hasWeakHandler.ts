@@ -7,7 +7,7 @@ export default function hasWeakMapHandler(
   key: object,
   cacheProxy: CacheProxy,
   cacheShallow: CacheShallow,
-  onChange: OnChange | undefined,
+  onChange: OnChange,
 ) {
   let hasValue = value.has(key);
 

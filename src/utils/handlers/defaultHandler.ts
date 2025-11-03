@@ -8,7 +8,7 @@ export default function defaultHandler(
   key: string | symbol,
   cacheProxy: CacheProxy,
   cacheShallow: CacheShallow,
-  onChange: OnChange | undefined,
+  onChange: OnChange,
   ...args: any[]
 ) {
   const result = (target  as any)[key](...toProxies(

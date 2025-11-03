@@ -8,7 +8,7 @@ export default function setHandler(
   value: Set<any>,
   cacheProxy: CacheProxy,
   cacheShallow: CacheShallow,
-  onChange: OnChange | undefined,
+  onChange: OnChange,
 ) {
   let shallow: Set<any>;
 

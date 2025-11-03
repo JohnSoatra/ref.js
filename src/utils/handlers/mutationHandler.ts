@@ -8,7 +8,7 @@ export default function mutationHandler(
   key: string,
   cacheProxy: CacheProxy,
   cacheShallow: CacheShallow,
-  onChange: OnChange | undefined,
+  onChange: OnChange,
   ...args: any[]
 ) {
   const props = toProxies(
@@ -19,7 +19,7 @@ export default function mutationHandler(
   )
   const result = (target  as any)[key](...props);
 
-  onChange?.({
+  onChange({
     target: proxy,
     action: key,
     key: undefined,

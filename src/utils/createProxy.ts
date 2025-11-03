@@ -18,13 +18,13 @@ export default function createProxy<T extends Record<string, any>>(
   content: T,
   cacheProxy: CacheProxy,
   cacheShallow: CacheShallow,
-  onChange: OnChange | undefined,
+  onChange: OnChange,
 ) {
   if (isProxy(content)) {
     return content;
   } else if (cacheProxy.has(content)) {
     return cacheProxy.get(content);
-  };
+  }
 
   const proxy = new Proxy(content, {
     get(target: any, key, receiver) {
@@ -59,7 +59,6 @@ export default function createProxy<T extends Record<string, any>>(
           if (value instanceof Set) {
             return setHandler(target, key, value, cacheProxy, cacheShallow, onChange);
           }
-
           return createProxy(value, cacheProxy, cacheShallow, onChange);
         }
         if (typeof key === 'string') {
@@ -100,7 +99,7 @@ export default function createProxy<T extends Record<string, any>>(
       const result = Reflect.set(target, key, value, receiver);
 
       if (currentValue !== value && result) {
-        onChange?.({
+        onChange({
           target: proxy,
           action: 'set',
           key,
@@ -115,7 +114,7 @@ export default function createProxy<T extends Record<string, any>>(
       const result = Reflect.deleteProperty(target, key);
 
       if (hadKey && result) {
-        onChange?.({
+        onChange({
           target: proxy,
           action: 'delete',
           key,

@@ -8,7 +8,7 @@ export default function mapHandler(
   value: Map<any, any>,
   cacheProxy: CacheProxy,
   cacheShallow: CacheShallow,
-  onChange: OnChange | undefined,
+  onChange: OnChange,
 ) {
   let shallow: Map<any, any>;
 
