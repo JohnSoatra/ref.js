@@ -1,7 +1,6 @@
 import { isArray, isProxy, mutationMethod } from "./utils";
 import Symbols from "../constants/symbols";
 import Keys from "../constants/keys";
-import { OnChange } from "../ref";
 import arrayHandler from "./handlers/arrayHandler";
 import mapHandler from "./handlers/mapHandler";
 import setHandler from "./handlers/setHandler";
@@ -10,9 +9,8 @@ import getWeakMapHandler from "./handlers/getWeakHandler";
 import hasWeakMapHandler from "./handlers/hasWeakHandler";
 import deleteWeakMapHandler from "./handlers/deleteWeakHandler";
 import defaultHandler from "./handlers/defaultHandler";
-
-export type CacheProxy = WeakMap<object, any>;
-export type CacheShallow = WeakMap<object, any>;
+import { OnChange } from "../types/ref";
+import { CacheProxy, CacheShallow } from "../types/createProxy";
 
 export default function createProxy<T extends Record<string, any>>(
   content: T,
@@ -51,7 +49,7 @@ export default function createProxy<T extends Record<string, any>>(
         )
       ) {
         if (isArray(value)) {
-          return arrayHandler(target,key, value, cacheProxy, cacheShallow, onChange);
+          return arrayHandler(target, key, value, cacheProxy, cacheShallow, onChange);
         } else if (typeof value === 'object') {
           if (value instanceof Map) {
             return mapHandler(target, key, value, cacheProxy, cacheShallow, onChange);
@@ -86,43 +84,49 @@ export default function createProxy<T extends Record<string, any>>(
             }
           }
         }
-
         return function (...args: any[]) {
           return defaultHandler(proxy, target, key, cacheProxy, cacheShallow, onChange, ...args);
         }
       }
-
       return value;
     },
-    set(target, key, value, receiver) {
+    set(target, key, newValue, receiver) {
       const currentValue = target[key];
-      const result = Reflect.set(target, key, value, receiver);
 
-      if (currentValue !== value && result) {
+      if (currentValue !== newValue) {
+        const prevValue = proxy[key];
+        const result = Reflect.set(target, key, newValue, receiver);
+
         onChange({
           target: proxy,
           action: 'set',
           key,
-          value
+          value: newValue,
+          prevValue: prevValue,
         });
-      };
 
-      return result;
+        return result;
+      };
+      return true;
     },
     deleteProperty(target, key) {
-      const hadKey = Object.prototype.hasOwnProperty.call(target, key);
-      const result = Reflect.deleteProperty(target, key);
+      const hasKey = Object.prototype.hasOwnProperty.call(target, key);
 
-      if (hadKey && result) {
+      if (hasKey) {
+        const prevValue = proxy[key];
+        const result = Reflect.deleteProperty(target, key);
+
         onChange({
           target: proxy,
           action: 'delete',
           key,
-          value: undefined
+          value: undefined,
+          prevValue: prevValue
         });
-      };
 
-      return result;
+        return result;
+      };
+      return true;
     }
   });
 

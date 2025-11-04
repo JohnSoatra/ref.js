@@ -1,6 +1,6 @@
-import { CacheProxy, CacheShallow } from "../createProxy";
 import { toProxies } from "../utils";
-import { OnChange } from "../../ref";
+import { OnChange } from "../../types/ref";
+import { CacheProxy, CacheShallow } from "../../types/createProxy";
 
 export default function defaultHandler(
   proxy: object,

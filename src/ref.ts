@@ -1,45 +1,38 @@
 import Keys from './constants/keys';
 import createProxy from './utils/createProxy';
-
-export type OnChange = (changes: {
-  target: any;
-  action: string | symbol;
-  key: any;
-  value: any;
-}) => void;
-
-export type Ref<T> = {
-  value: T;
-  onchange: OnChange | undefined;
-};
+import handleChange from './utils/handleChange';
+import { OnChange, Ref } from './types/ref';
 
 function ref<T>(initial: T, onchange?: OnChange): Ref<T>;
 function ref<T = undefined>(): Ref<T | undefined>;
 function ref<T>(initial?: T, onchange?: OnChange): Ref<T | undefined> {
-  let onChange: Ref<T>['onchange'] = onchange;
+  let onChange: OnChange | undefined = onchange;
   const cacheProxy = new WeakMap();
   const cacheShallow = new WeakMap();
 
-  const handleChange: OnChange = (props) => {
-    onChange?.(props);
-  }
-
   return new Proxy(
-    createProxy({ value: initial }, cacheProxy, cacheShallow, handleChange), {
-    get(target, key, receiver) {
-      if (key === Keys.OnChange) {
-        return onChange;
-      }
-      return Reflect.get(target, key, receiver);
-    },
-    set(target, key, value, receiver) {
-      if (key === Keys.OnChange) {
-        onChange = value;
-        return true;
-      }
-      return Reflect.set(target, key, value, receiver);
-    },
-  });
+    createProxy(
+      { value: initial },
+      cacheProxy,
+      cacheShallow,
+      (props) => handleChange(onChange, props),
+    ),
+    {
+      get(target, key, receiver) {
+        if (key === Keys.OnChange) {
+          return onChange;
+        }
+        return Reflect.get(target, key, receiver);
+      },
+      set(target, key, newValue, receiver) {
+        if (key === Keys.OnChange) {
+          onChange = newValue;
+          return true;
+        }
+        return Reflect.set(target, key, newValue, receiver);
+      },
+    }
+  );
 }
 
 export default ref;

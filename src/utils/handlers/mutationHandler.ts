@@ -1,6 +1,6 @@
-import { CacheProxy, CacheShallow } from "../createProxy";
 import { toProxies } from "../utils";
-import { OnChange } from "../../ref";
+import { OnChange } from "../../types/ref";
+import { CacheProxy, CacheShallow } from "../../types/createProxy";
 
 export default function mutationHandler(
   proxy: object,
@@ -23,7 +23,8 @@ export default function mutationHandler(
     target: proxy,
     action: key,
     key: undefined,
-    value: props
+    value: props,
+    prevValue: undefined
   });
 
   return result === target ? proxy : result;

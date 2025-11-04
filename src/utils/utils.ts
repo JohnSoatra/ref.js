@@ -1,7 +1,8 @@
-import createProxy, { CacheProxy, CacheShallow } from "./createProxy";
+import createProxy from "./createProxy";
 import MutationMethods from "../constants/mutationMethods";
 import Symbols from "../constants/symbols";
-import { OnChange } from "../ref";
+import { OnChange } from "../types/ref";
+import { CacheProxy, CacheShallow } from "../types/createProxy";
 
 export function creatable(value: any) {
   return typeof value === 'object' && value !== null;
@@ -20,8 +21,7 @@ export function getRaw(proxy: any): object | undefined {
 }
 
 export function mutationMethod(obj: object, key: string) {
-  const constructor = Object.getPrototypeOf(obj).constructor;
-  const list = MutationMethods.get(constructor);
+  const list = MutationMethods.get(Object.getPrototypeOf(obj).constructor);
   return list ? list.includes(key) : false;
 }
 
@@ -73,6 +73,14 @@ export function shallowArray<T>(value: T): T {
   ) {
     return new (value.constructor as any)(value) as T;
   }
-
   return value;
+}
+
+export function getWeakValue(proxy: WeakMap<any, any> | WeakSet<any>, key: object | undefined) {
+  if (proxy instanceof WeakMap) {
+    return proxy.get(key);
+  } else if (proxy.has(key)) {
+    return key;
+  }
+  return undefined;
 }

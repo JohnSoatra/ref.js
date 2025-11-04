@@ -1,22 +1,28 @@
-import createProxy, { CacheProxy, CacheShallow } from "../createProxy";
-import { creatable, getRaw, isProxy } from "../utils";
-import { OnChange } from "../../ref";
+import createProxy from "../createProxy";
+import { creatable, getRaw, getWeakValue, isProxy } from "../utils";
+import { OnChange } from "../../types/ref";
+import { CacheProxy, CacheShallow } from "../../types/createProxy";
 
 export default function deleteWeakMapHandler(
   proxy: any,
-  value: WeakMap<any, any> | WeakSet<any>,
+  target: WeakMap<any, any> | WeakSet<any>,
   key: object,
   cacheProxy: CacheProxy,
   cacheShallow: CacheShallow,
   onChange: OnChange,
 ) {
-  let deleted = value.delete(key);
+  let prevValue = getWeakValue(proxy, key);
+  let deleted = target.delete(key);
 
   if (!deleted && creatable(key)) {
     if (isProxy(key)) {
-      deleted = value.delete(getRaw(key));
+      const rawKey = getRaw(key);
+      prevValue = getWeakValue(proxy, rawKey);
+      deleted = target.delete(rawKey);
     } else {
-      deleted = value.delete(createProxy(key, cacheProxy, cacheShallow, onChange));
+      const proxyValue = createProxy(key, cacheProxy, cacheShallow, onChange);
+      prevValue = getWeakValue(proxy, prevValue);
+      deleted = target.delete(proxyValue);
     }
   }
 
@@ -25,7 +31,8 @@ export default function deleteWeakMapHandler(
       target: proxy,
       action: 'delete',
       key,
-      value: undefined
+      value: undefined,
+      prevValue
     });
   }
 

@@ -1,6 +1,7 @@
-import createProxy, { CacheProxy, CacheShallow } from "../createProxy";
+import createProxy from "../createProxy";
 import { creatable, isProxy, shallowArray } from "../utils";
-import { OnChange } from "../../ref";
+import { OnChange } from "../../types/ref";
+import { CacheProxy, CacheShallow } from "../../types/createProxy";
 
 export default function arrayHandler(
   target: any,
