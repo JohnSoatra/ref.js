@@ -1,8 +1,8 @@
 import createProxy from "./createProxy";
-import MutationMethods from "../constants/mutationMethods";
 import Symbols from "../constants/symbols";
 import { OnChangeHandler } from "../types/ref";
 import { CacheProxy, CacheShallow } from "../types/createProxy";
+import Keys from "../constants/keys";
 
 export function creatable(value: any) {
   return typeof value === 'object' && value !== null;
@@ -12,18 +12,21 @@ export function isArray(value: any): boolean {
   return Array.isArray(value) || (ArrayBuffer.isView(value) && !(value instanceof DataView));
 }
 
-export function isProxy(value: any): boolean {
-  return value[Symbols.IsProxy] ?? false;
+export function isProxy(value: object): boolean {
+  return (value as any)[Symbols.IsProxy] ?? false;
 }
 
 export function getRaw(proxy: any): object | undefined {
   return proxy[Symbols.RawObject];
 }
 
-export function mutationMethod(obj: object, key: string) {
-  const list = MutationMethods.get(Object.getPrototypeOf(obj).constructor);
-  return list ? list.includes(key) : false;
+export function forbiddenKey(key: string | symbol) {
+  return typeof key === 'string' && Keys.ForbiddenKeys.includes(key);
 }
+// export function mutationMethod(obj: object, key: string) {
+//   const list = MutationMethods.get(Object.getPrototypeOf(obj).constructor);
+//   return list ? list.includes(key) : false;
+// }
 
 export function toProxies(
   cacheProxy: CacheProxy,
@@ -64,10 +67,10 @@ export function shallowArray<T>(value: T): T {
   return value;
 }
 
-export function getWeakValue(proxy: WeakMap<any, any> | WeakSet<any>, key: object | undefined) {
-  if (proxy instanceof WeakMap) {
-    return proxy.get(key);
-  } else if (proxy.has(key)) {
+export function getWeakValue(target: WeakMap<any, any> | WeakSet<any>, key: any) {
+  if (target instanceof WeakMap) {
+    return target.get(key);
+  } else if (target.has(key)) {
     return key;
   }
   return undefined;
@@ -85,4 +88,19 @@ export function getNow() {
     return performance.now();
   }
   return Date.now();
+}
+
+export function tryToGetRaw(value: any) {
+  if (creatable(value) && isProxy(value)) {
+    return getRaw(value);
+  }
+  return value;
+}
+
+export function tryToCreateProxy(...args: Parameters<typeof createProxy>) {
+  const value = args[0];
+  if (creatable(value)) {
+    return createProxy(...args);
+  }
+  return value;
 }

@@ -1,13 +1,13 @@
-import { isArray, isProxy, mutationMethod } from "./utils";
+import { forbiddenKey, isArray, isProxy, mutationMethod } from "./utils";
 import Symbols from "../constants/symbols";
 import Keys from "../constants/keys";
 import arrayHandler from "./handlers/arrayHandler";
 import mapHandler from "./handlers/mapHandler";
 import setHandler from "./handlers/setHandler";
 import mutationHandler from "./handlers/mutationHandler";
-import getWeakMapHandler from "./handlers/getWeakHandler";
-import hasWeakMapHandler from "./handlers/hasWeakHandler";
-import deleteWeakMapHandler from "./handlers/deleteWeakHandler";
+import getHandler from "./handlers/collection/getHandler";
+import hasHandler from "./handlers/collection/hasHandler";
+import deleteHandler from "./handlers/collection/deleteHandler";
 import defaultHandler from "./handlers/defaultHandler";
 import { OnChangeHandler } from "../types/ref";
 import { CacheProxy, CacheShallow } from "../types/createProxy";
@@ -28,7 +28,7 @@ export default function createProxy<T extends Record<string, any>>(
 
   const proxy = new Proxy(content, {
     get(target: any, key, receiver) {
-      if (typeof key === 'string' && Keys.ForbiddenKeys.includes(key)) {
+      if (forbiddenKey(key)) {
         return undefined;
       }
       if (key === Symbols.IsProxy) {
@@ -54,44 +54,35 @@ export default function createProxy<T extends Record<string, any>>(
           typeof value === 'function'
         )
       ) {
-        if (isArray(value)) {
-          return arrayHandler(target, key, value, cacheProxy, cacheShallow, onChange);
-        } else if (typeof value === 'object') {
-          if (value instanceof Map) {
-            return mapHandler(target, key, value, cacheProxy, cacheShallow, onChange);
-          }
-          if (value instanceof Set) {
-            return setHandler(target, key, value, cacheProxy, cacheShallow, onChange);
-          }
+        if (isArray(value) || typeof value === 'object') {
           return createProxy(value, cacheProxy, cacheShallow, onChange);
         }
-        if (typeof key === 'string') {
-          if (key === Keys.Get && value instanceof WeakMap) {
-            return function (getKey: any) {
-              return getWeakMapHandler(target, getKey, cacheProxy, cacheShallow, onChange);
-            }
-          } else if (
-            key === Keys.Has &&
-            (value instanceof WeakMap || value instanceof WeakSet)
-          ) {
-            return function (hasKey: any) {
-              return hasWeakMapHandler(target, hasKey, cacheProxy, cacheShallow, onChange);
-            }
-          } else if (
-            key === Keys.Delete &&
-            (value instanceof WeakMap || value instanceof WeakSet)
-          ) {
-            return function (deleteKey: any) {
-              return deleteWeakMapHandler(proxy, target, deleteKey, cacheProxy, cacheShallow, onChange);
-            }
-          } else if (mutationMethod(target, key)) {
-            return function (...args: any[]) {
-              return mutationHandler(proxy, target, key, cacheProxy, cacheShallow, onChange, ...args);
-            }
+        if (key === Keys.Get && value instanceof WeakMap) {
+          return function (getKey: any) {
+            return getHandler(target, getKey, cacheProxy, cacheShallow, onChange);
+          }
+        } else if (
+          key === Keys.Has &&
+          (value instanceof WeakMap || value instanceof WeakSet)
+        ) {
+          return function (hasKey: any) {
+            return hasHandler(target, hasKey, cacheProxy, cacheShallow, onChange);
+          }
+        } else if (
+          key === Keys.Delete &&
+          (value instanceof WeakMap || value instanceof WeakSet)
+        ) {
+          return function (deleteKey: any) {
+            return deleteHandler(proxy, target, deleteKey, cacheProxy, cacheShallow, onChange);
+          }
+        } else if (typeof key === 'string' && mutationMethod(target, key)) {
+          return function (...args: any[]) {
+            return mutationHandler(proxy, target, key, cacheProxy, cacheShallow, onChange, ...args);
           }
         }
         return function (...args: any[]) {
-          return defaultHandler(proxy, target, key, cacheProxy, cacheShallow, onChange, ...args);
+          const result = value.call(target, ...args);
+          return result === target ? proxy : target;
         }
       }
       return value;
