@@ -25,6 +25,19 @@ export type OnChangeHandler = (event: ChangeEvent) => void;
  * Options for configuring a reactive Ref.
  */
 export type RefOptions = {
+    /**
+   * Optional cache used to store mappings of raw objects to their corresponding proxies.
+   *
+   * This ensures that the same object reference always returns the same proxy,
+   * preserving identity across repeated accesses (e.g., `obj.a === obj.a` remains true).
+   *
+   * Normally, this cache is automatically managed internally by the reactive system.
+   * You can provide a custom WeakMap if you want multiple refs to share the same
+   * reactivity graph or maintain consistent proxies across different refs.
+   *
+   * ⚠️ Note: Passing an invalid or reused cache may cause unexpected proxy behavior.
+   */
+  cache?: WeakMap<object, object>;
   /**
    * Maximum number of updates allowed in a single tick (1–300).
    * Prevents infinite or excessive updates.

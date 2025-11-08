@@ -13,11 +13,27 @@ import {
   isMutationMethod,
   isForbiddenKey,
   isProducerMethod,
-  deleteCacheTry
+  removeCacheTry,
+  isPickingMethod
 } from "./utils";
 import { CacheProxy } from "../types/createProxy";
 import { OnChangeHandler } from "../types/ref";
 
+/**
+ * Recursively creates a reactive Proxy around an object, array, or collection.
+ *
+ * Features:
+ * - Reuses cached proxies to maintain reference consistency.
+ * - Automatically packs specialized handlers for arrays, maps, and sets.
+ * - Triggers `onChange` when properties or collections are mutated.
+ * - Safely skips forbidden or internal keys (like Symbols.RawObject).
+ *
+ * @param content Target object or collection to proxy.
+ * @param cache WeakMap used to store raw-to-proxy mappings for identity preservation.
+ * @param onChange Callback triggered when reactive mutations occur.
+ * @param saveProxy Whether to store the proxy in cache (defaults to true).
+ * @returns A reactive Proxy wrapping the original content.
+ */
 export default function createProxy<T extends Record<string, any>>(
   content: T,
   cache: CacheProxy,
@@ -27,8 +43,9 @@ export default function createProxy<T extends Record<string, any>>(
   if (isProxy(content)) {
     return content;
   }
-  if (cache.has(content)) {
-    return cache.get(content);
+  const cachedProxy = cache.get(content);
+  if (cachedProxy) {
+    return cachedProxy;
   }
   const proxy = new Proxy(content, {
     get(target: any, key, receiver) {
@@ -52,6 +69,7 @@ export default function createProxy<T extends Record<string, any>>(
         if (isIterationMethod(target, key)) return handlers.iterationHandler;
         if (isIteratorMethod(target, key)) return handlers.iteratorHandler;
         if (isLookupMethod(target, key)) return handlers.lookupArrayHandler;
+        if (isPickingMethod(target, key)) return handlers.pickingArrayHandler;
         if (isMapCollection(target)) {
           if (key === Keys.Get) return handlers.getHandler;
           if (key === Keys.Set) return handlers.setHandler;
@@ -71,7 +89,7 @@ export default function createProxy<T extends Record<string, any>>(
       if (!Object.is(prevValue, newValue)) {
         const result = Reflect.set(target, key, newValue, receiver);
         if (result) {
-          deleteCacheTry(prevValue, cache);
+          removeCacheTry(prevValue, cache);
           onChange({
             target: proxy,
             action: 'set',
@@ -91,7 +109,7 @@ export default function createProxy<T extends Record<string, any>>(
         const prevValue = target[key];
         const result = Reflect.deleteProperty(target, key);
         if (result) {
-          deleteCacheTry(prevValue, cache);
+          removeCacheTry(prevValue, cache);
           onChange({
             target: proxy,
             action: 'delete',
