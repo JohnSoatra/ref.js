@@ -4,31 +4,62 @@ import { getNow, createOptions } from './utils/utils';
 import { Ticks, OnChangeHandler, Ref, RefOptions, ChangeEvent } from './types/ref';
 
 /**
- * Creates a reactive reference object.
+ * Creates a reactive reference object with an onchange callback.
  *
  * The returned object has:
  * - `value`: the reactive value of type `T`. Any changes to this value or nested objects/arrays
- *   will trigger the `onchange` callback if provided.
- * - `onchange`: optional callback that is called whenever the value changes.
- * - `options`: optional configuration for the reference, including:
- *   - `maxTick`: maximum number of updates allowed in a single tick (1–300).
- *   - `maxTickMessage`: message to display or log when `maxTick` is exceeded.
- *   - `onchange`: a callback function to handle change events.
+ *   will trigger the `onchange` callback.
+ * - `onchange`: callback function called whenever `value` changes.
+ *
+ * Example usage:
+ * ```ts
+ * const count = ref(0, (event) => console.log(event.value));
+ * count.value = 5; // Triggers onchange
+ * ```
+ *
+ * @param initial The initial value of the reactive reference.
+ * @param onchange Callback to handle change events.
+ * @returns A reactive reference object of type `Ref<T>`.
+ */
+function ref<T>(initial: T, onchange?: OnChangeHandler): Ref<T>;
+
+/**
+ * Creates a reactive reference object with configuration options.
+ *
+ * The returned object has:
+ * - `value`: the reactive value of type `T`.
+ * - `onchange`: optional callback provided in options.
+ * - `options`: allows configuring:
+ *   - `maxTick`: maximum number of updates allowed per frame.
+ *   - `maxTickMessage`: message displayed when maxTick is exceeded.
  *
  * Example usage:
  * ```ts
  * const count = ref(0, { maxTick: 100, maxTickMessage: 'Too many updates', onchange: (e) => console.log(e) });
- * count.value = 5; // Triggers the onchange callback
+ * count.value = 5; // Triggers onchange
  * ```
  *
  * @param initial The initial value of the reactive reference.
- * @param onchangeOrOptions Optional callback or configuration object (`RefOptions`) that
- *   is used whenever the value changes.
- * @returns A reactive reference object of type `Ref<T>` with `.value` and reactive behavior
- *   controlled via options.
+ * @param options Configuration object of type `RefOptions`.
+ * @returns A reactive reference object of type `Ref<T>`.
  */
-function ref<T>(initial: T, onchange?: OnChangeHandler): Ref<T>;
 function ref<T>(initial: T, options?: RefOptions): Ref<T>;
+
+/**
+ * Creates a reactive reference object with an optional undefined initial value.
+ *
+ * The returned object has:
+ * - `value`: initially `undefined` (or default type `T | undefined`).
+ * - `onchange`: can be assigned later.
+ *
+ * Example usage:
+ * ```ts
+ * const count = ref<number>();
+ * count.value = 5; // Triggers onchange if assigned
+ * ```
+ *
+ * @returns A reactive reference object of type `Ref<T | undefined>`.
+ */
 function ref<T = undefined>(): Ref<T | undefined>;
 function ref<T>(initial?: T, onchangeOrOptions?: OnChangeHandler | RefOptions): Ref<T | undefined> {
   const options = createOptions(onchangeOrOptions);

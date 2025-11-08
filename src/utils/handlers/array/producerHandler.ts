@@ -1,12 +1,12 @@
-import ProducerArrayMethods from "../../../constants/producerMethods/array";
 import Keys from "../../../constants/keys";
 import { createCallbackArgs, toProxiedItems, toRawArgs } from "../../utils";
+import { ProducerArrayMethods } from "../../../constants/producerMethods/array";
 import { CacheProxy } from "../../../types/createProxy";
 import { OnChangeHandler } from "../../../types/ref";
 
 function producerArrayHandler(
   target: any[],
-  key: typeof ProducerArrayMethods[number],
+  key: ProducerArrayMethods,
   cache: CacheProxy,
   onChange: OnChangeHandler,
   ...args: any[]

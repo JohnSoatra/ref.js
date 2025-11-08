@@ -1,12 +1,12 @@
-import PickingArrayMethods from "../../../constants/pickingMethods/array";
 import Keys from "../../../constants/keys";
 import { createCallbackArgs, createProxyTry } from "../../utils";
+import { PickingArrayMethods } from "../../../constants/pickingMethods/array";
 import { CacheProxy } from "../../../types/createProxy";
 import { OnChangeHandler } from "../../../types/ref";
 
 function pickingArrayHandler(
   target: any[],
-  key: typeof PickingArrayMethods[number],
+  key: PickingArrayMethods,
   cache: CacheProxy,
   onChange: OnChangeHandler,
   ...args: any[]

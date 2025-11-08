@@ -1,4 +1,15 @@
-const MutationArrayMethods = [
+export type MutationArrayMethods =
+  | 'copyWithin'
+  | 'fill'
+  | 'pop'
+  | 'push'
+  | 'reverse'
+  | 'shift'
+  | 'sort'
+  | 'splice'
+  | 'unshift';
+
+const MutationArrayMethods = new Set<MutationArrayMethods>([
   'copyWithin',
   'fill',
   'pop',
@@ -8,6 +19,6 @@ const MutationArrayMethods = [
   'sort',
   'splice',
   'unshift',
-] as const;
+]);
 
 export default MutationArrayMethods;

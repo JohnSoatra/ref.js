@@ -1,7 +1,12 @@
-const LookupArrayMethods = [
+export type LookupArrayMethods =
+  | 'includes'
+  | 'indexOf'
+  | 'lastIndexOf';
+
+const LookupArrayMethods = new Set<LookupArrayMethods>([
   'includes',
   'indexOf',
   'lastIndexOf',
-] as const;
+]);
 
 export default LookupArrayMethods;

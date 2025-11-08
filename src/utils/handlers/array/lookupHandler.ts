@@ -1,9 +1,9 @@
-import LookupArrayMethods from "../../../constants/lookupMethods/array";
 import { toRawArgs } from "../../utils";
+import { LookupArrayMethods } from "../../../constants/lookupMethods/array";
 
 function lookupArrayHandler(
   target: any[],
-  key: typeof LookupArrayMethods[number],
+  key: LookupArrayMethods,
   ...args: any[]
 ) {
   const [searchElement, fromIndex] = toRawArgs(args);

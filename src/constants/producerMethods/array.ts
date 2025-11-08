@@ -1,4 +1,14 @@
-const ProducerArrayMethods = [
+export type ProducerArrayMethods =
+  | 'concat'
+  | 'flat'
+  | 'slice'
+  | 'splice'
+  | 'toReversed'
+  | 'toSorted'
+  | 'toSpliced'
+  | 'with';
+
+const ProducerArrayMethods = new Set<ProducerArrayMethods>([
   'concat',
   'flat',
   'slice',
@@ -7,6 +17,6 @@ const ProducerArrayMethods = [
   'toSorted',
   'toSpliced',
   'with',
-] as const;
+]);
 
 export default ProducerArrayMethods;

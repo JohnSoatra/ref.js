@@ -11,7 +11,7 @@ const Keys = {
   Splice: 'splice',
   ToSorted: 'toSorted',
   OnChange: 'onchange',
-  ForbiddenKeys: ['__proto__', 'constructor', 'prototype'],
+  ForbiddenKeys: new Set(['__proto__', 'constructor', 'prototype']),
 } as const;
 
 export default Keys;

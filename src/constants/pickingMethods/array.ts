@@ -1,7 +1,12 @@
-const PickingArrayMethods = [
+export type PickingArrayMethods =
+  | 'at'
+  | 'find'
+  | 'findLast';
+
+const PickingArrayMethods = new Set<PickingArrayMethods>([
   'at',
   'find',
   'findLast',
-] as const ;
+]);
 
 export default PickingArrayMethods;

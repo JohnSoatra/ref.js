@@ -14,7 +14,7 @@ import { OnChangeHandler, RefOptions } from "../types/ref";
 import PickingArrayMethods from "../constants/pickingMethods/array";
 
 export function isForbiddenKey(key: any) {
-  return Keys.ForbiddenKeys.includes(key);
+  return Keys.ForbiddenKeys.has(key);
 }
 
 export function isCreatable(value: any) {
@@ -47,36 +47,36 @@ export function isCollection(target: object) {
 
 export function isIterationMethod(target: object, key: any) {
   return (
-    (Array.isArray(target) && IterationArrayMethods.includes(key)) ||
-    (target instanceof Map && IterationMapMethods.includes(key)) ||
-    (target instanceof Set && IterationSetMethods.includes(key))
+    (Array.isArray(target) && IterationArrayMethods.has(key)) ||
+    (target instanceof Map && IterationMapMethods.has(key)) ||
+    (target instanceof Set && IterationSetMethods.has(key))
   );
 }
 
 export function isIteratorMethod(target: object, key: any) {
   return (
     (Array.isArray(target) || target instanceof Map || target instanceof Set) &&
-    IteratorMethods.includes(key)
+    IteratorMethods.has(key)
   );
 }
 
 export function isLookupMethod(target: object, key: any) {
-  return Array.isArray(target) && LookupArrayMethods.includes(key);
+  return Array.isArray(target) && LookupArrayMethods.has(key);
 }
 
 export function isMutationMethod(target: object, key: any) {
   return (
-    (Array.isArray(target) && MutationArrayMethods.includes(key)) ||
-    (isTypedArray(target) && MutationTypedArrayMethods.includes(key))
+    (Array.isArray(target) && MutationArrayMethods.has(key)) ||
+    (isTypedArray(target) && MutationTypedArrayMethods.has(key))
   );
 }
 
 export function isPickingMethod(target: object, key: any) {
-  return Array.isArray(target) && PickingArrayMethods.includes(key);
+  return Array.isArray(target) && PickingArrayMethods.has(key);
 }
 
 export function isProducerMethod(target: object, key: any) {
-  return Array.isArray(target) && ProducerArrayMethods.includes(key);
+  return Array.isArray(target) && ProducerArrayMethods.has(key);
 }
 
 export function getRaw(proxy: object): object | undefined {
