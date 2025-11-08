@@ -4,7 +4,7 @@ import { Ticks, ChangeEvent, RefOptions } from "../types/ref";
 
 function maxTick(options: RefOptions) {
   return (
-    options.maxTick && (options.maxTick > 0 && options.maxTick <= Max.LimitTick) ?
+    (options.maxTick && options.maxTick <= Max.LimitTick) ?
       options.maxTick :
       Max.Tick
   );

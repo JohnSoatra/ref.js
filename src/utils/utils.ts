@@ -9,9 +9,9 @@ import LookupArrayMethods from "../constants/lookupMethods/array";
 import MutationArrayMethods from "../constants/mutationMethods/array";
 import MutationTypedArrayMethods from "../constants/mutationMethods/typedArray";
 import ProducerArrayMethods from "../constants/producerMethods/array";
+import PickingArrayMethods from "../constants/pickingMethods/array";
 import { CacheProxy } from "../types/createProxy";
 import { OnChangeHandler, RefOptions } from "../types/ref";
-import PickingArrayMethods from "../constants/pickingMethods/array";
 
 export function isForbiddenKey(key: any) {
   return Keys.ForbiddenKeys.has(key);
@@ -94,9 +94,9 @@ export function getWeakValue(target: WeakMap<any, any> | WeakSet<any>, key: any)
 
 export function nextFrame(callback: () => void) {
   if (typeof requestAnimationFrame === 'function') {
-    requestAnimationFrame(callback);
+    return requestAnimationFrame(callback);
   } else {
-    setImmediate(callback);
+    return setImmediate(callback);
   }
 }
 
@@ -136,8 +136,9 @@ export function createOptions(onchangeOrOptions: OnChangeHandler | RefOptions | 
 
 export function removeCacheTry(value: any, cache: CacheProxy) {
   if (isCreatable(value)) {
-    cache.delete(value);
+    return cache.delete(value);
   }
+  return false;
 }
 
 export function toRawArgs(args: any[]) {

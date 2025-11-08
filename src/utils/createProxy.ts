@@ -28,8 +28,9 @@ export default function createProxy<T extends Record<string, any>>(
   if (isProxy(content)) {
     return content;
   }
-  if (cache.has(content)) {
-    return cache.get(content);
+  const cachedProxy = cache.get(content);
+  if (cachedProxy) {
+    return cachedProxy;
   }
   const proxy = new Proxy(content, {
     get(target: any, key, receiver) {

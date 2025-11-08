@@ -30,6 +30,8 @@ function ref<T>(initial: T, onchange?: OnChangeHandler): Ref<T>;
  * - `value`: the reactive value of type `T`.
  * - `onchange`: optional callback provided in options.
  * - `options`: allows configuring:
+ *   - `cache`: optional WeakMap used to store raw–proxy mappings. 
+ *     Useful when sharing the same reactive identity across multiple refs.
  *   - `maxTick`: maximum number of updates allowed per frame.
  *   - `maxTickMessage`: message displayed when maxTick is exceeded.
  *
@@ -63,7 +65,7 @@ function ref<T>(initial: T, options?: RefOptions): Ref<T>;
 function ref<T = undefined>(): Ref<T | undefined>;
 function ref<T>(initial?: T, onchangeOrOptions?: OnChangeHandler | RefOptions): Ref<T | undefined> {
   const options = createOptions(onchangeOrOptions);
-  const cache = new WeakMap();
+  const cache = options.cache ? options.cache : new WeakMap();
   const ticks: Ticks = {
     latest: getNow(),
     tick: 0,
