@@ -1,5 +1,4 @@
-import Keys from "../../../constants/keys";
-import { createCallbackArgs, toProxiedItems, toRawArgs } from "../../utils";
+import { toProxiedItems, toRawArgs } from "../../utils";
 import { ProducerArrayMethods } from "../../../constants/producerMethods/array";
 import { CacheProxy } from "../../../types/createProxy";
 import { OnChangeHandler } from "../../../types/ref";
@@ -26,14 +25,8 @@ function producerArrayHandler(
   onChange: OnChangeHandler,
   ...args: any[]
 ) {
-  let value: any[];
-  if (key === Keys.ToSorted) {
-    const [compareFn] = createCallbackArgs(cache, onChange, args[0]);
-    value = target.toSorted(compareFn);
-  } else {
-    const rawArgs = toRawArgs(args);
-    value = target[key].apply(target, rawArgs);
-  }
+  const rawArgs = toRawArgs(args);
+  const value = target[key].apply(target, rawArgs);
   return toProxiedItems(value, cache, onChange);
 }
 

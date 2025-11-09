@@ -1,15 +1,6 @@
-import createProxy from "./createProxy";
 import Keys from "../constants/keys";
 import Symbols from "../constants/symbols";
-import IterationArrayMethods from "../constants/iterationMethods/array";
-import IterationMapMethods from "../constants/iterationMethods/map";
-import IterationSetMethods from "../constants/iterationMethods/set";
-import IteratorMethods from "../constants/iteratorMethods";
-import LookupArrayMethods from "../constants/lookupMethods/array";
-import MutationArrayMethods from "../constants/mutationMethods/array";
-import MutationTypedArrayMethods from "../constants/mutationMethods/typedArray";
-import ProducerArrayMethods from "../constants/producerMethods/array";
-import PickingArrayMethods from "../constants/pickingMethods/array";
+import createProxy from "./createProxy";
 import { CacheProxy } from "../types/createProxy";
 import { OnChangeHandler, RefOptions } from "../types/ref";
 
@@ -41,42 +32,12 @@ export function isSetCollection(target: object) {
   return target instanceof Set || target instanceof WeakSet;
 }
 
+export function isStrongCollection(target: object) {
+  return target instanceof Map || target instanceof Set;
+}
+
 export function isCollection(target: object) {
   return isMapCollection(target) || isSetCollection(target);
-}
-
-export function isIterationMethod(target: object, key: any) {
-  return (
-    (Array.isArray(target) && IterationArrayMethods.has(key)) ||
-    (target instanceof Map && IterationMapMethods.has(key)) ||
-    (target instanceof Set && IterationSetMethods.has(key))
-  );
-}
-
-export function isIteratorMethod(target: object, key: any) {
-  return (
-    (Array.isArray(target) || target instanceof Map || target instanceof Set) &&
-    IteratorMethods.has(key)
-  );
-}
-
-export function isLookupMethod(target: object, key: any) {
-  return Array.isArray(target) && LookupArrayMethods.has(key);
-}
-
-export function isMutationMethod(target: object, key: any) {
-  return (
-    (Array.isArray(target) && MutationArrayMethods.has(key)) ||
-    (isTypedArray(target) && MutationTypedArrayMethods.has(key))
-  );
-}
-
-export function isPickingMethod(target: object, key: any) {
-  return Array.isArray(target) && PickingArrayMethods.has(key);
-}
-
-export function isProducerMethod(target: object, key: any) {
-  return Array.isArray(target) && ProducerArrayMethods.has(key);
 }
 
 export function getRaw(proxy: object): object | undefined {
@@ -95,9 +56,10 @@ export function getWeakValue(target: WeakMap<any, any> | WeakSet<any>, key: any)
 export function nextFrame(callback: () => void) {
   if (typeof requestAnimationFrame === 'function') {
     return requestAnimationFrame(callback);
-  } else {
+  } else if (typeof setImmediate === 'function') {
     return setImmediate(callback);
   }
+  return setTimeout(callback, 0);
 }
 
 export function getNow() {
@@ -154,12 +116,15 @@ export function toProxiedItems(array: any[], cache: CacheProxy, onChange: OnChan
  * to ensure reactive proxy values are passed to the original callback.
  */
 export function createCallbackArgs(cache: CacheProxy, onChange: OnChangeHandler, ...args: any[]) {
-  const [callbackFn, ...restArgs] = args;
-  function callback(this: any, ...callbackArgs: any[]) {
-    const proxiedArgs = callbackArgs.map(arg => createProxyTry(arg, cache, onChange));
-    return callbackFn.apply(this, proxiedArgs);
+  if (args.length > 0) {
+    const [callbackFn, ...restArgs] = args;
+    function callback(this: any, ...callbackArgs: any[]) {
+      const proxiedArgs = callbackArgs.map(arg => createProxyTry(arg, cache, onChange));
+      return callbackFn.apply(this, proxiedArgs);
+    }
+    return [callback, ...restArgs];
   }
-  return [callback, ...restArgs];
+  return args;
 }
 
 export function createProxiedIterator(iterator: Iterator<any>, cache: CacheProxy, onChange: OnChangeHandler) {

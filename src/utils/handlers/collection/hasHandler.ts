@@ -13,5 +13,6 @@ export default function hasHandler(
   target: Map<any, any> | Set<any> | WeakMap<any, any> | WeakSet<any>,
   key: object,
 ) {
-  return target.has(getRawTry(key));
+  const rawKey = getRawTry(key);
+  return target.has(rawKey);
 }

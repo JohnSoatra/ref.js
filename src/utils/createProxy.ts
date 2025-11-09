@@ -1,5 +1,13 @@
 import Keys from "../constants/keys";
 import Symbols from "../constants/symbols";
+import MutationArrayMethods from "../constants/mutationMethods/array";
+import ProducerArrayMethods from "../constants/producerMethods/array";
+import IterationArrayMethods from "../constants/iterationMethods/array";
+import IteratorMethods from "../constants/iteratorMethods";
+import LookupArrayMethods from "../constants/lookupMethods/array";
+import PickingArrayMethods from "../constants/pickingMethods/array";
+import ConflictArrayMethods from "../constants/conflictMethods/array";
+import MutationTypedArrayMethods from "../constants/mutationMethods/typedArray";
 import packHandlers from "./packHandlers";
 import {
   isArray,
@@ -7,14 +15,10 @@ import {
   isMapCollection,
   isSetCollection,
   isCollection,
-  isIterationMethod,
-  isIteratorMethod,
-  isLookupMethod,
-  isMutationMethod,
   isForbiddenKey,
-  isProducerMethod,
   removeCacheTry,
-  isPickingMethod
+  isTypedArray,
+  isStrongCollection
 } from "./utils";
 import { CacheProxy } from "../types/createProxy";
 import { OnChangeHandler } from "../types/ref";
@@ -48,7 +52,7 @@ export default function createProxy<T extends Record<string, any>>(
     return cachedProxy;
   }
   const proxy = new Proxy(content, {
-    get(target: any, key, receiver) {
+    get(target: any, key: any, receiver) {
       if (key === Symbols.IsProxy) return true;
       if (key === Symbols.RawObject) return content;
       let value: any;
@@ -62,22 +66,34 @@ export default function createProxy<T extends Record<string, any>>(
           typeof value === 'function'
         )
       ) {
-        if (isArray(value) || typeof value === 'object') return createProxy(value, cache, onChange);
-        const handlers = packHandlers(proxy, target, key, cache, onChange);
-        if (isMutationMethod(target, key)) return handlers.mutationArrayHandler;
-        if (isProducerMethod(target, key)) return handlers.producerArrayHandler;
-        if (isIterationMethod(target, key)) return handlers.iterationHandler;
-        if (isIteratorMethod(target, key)) return handlers.iteratorHandler;
-        if (isLookupMethod(target, key)) return handlers.lookupArrayHandler;
-        if (isPickingMethod(target, key)) return handlers.pickingArrayHandler;
-        if (isMapCollection(target)) {
-          if (key === Keys.Get) return handlers.getHandler;
-          if (key === Keys.Set) return handlers.setHandler;
+        if (isArray(value) || typeof value === 'object') {
+          return createProxy(value, cache, onChange);
         }
-        if (isSetCollection(target) && key === Keys.Add) return handlers.addHandler;
+        const handlers = packHandlers(proxy, target, key, cache, onChange);
+        if (Array.isArray(target)) {
+          if (ConflictArrayMethods.has(key)) return handlers.conflictArrayHandler;
+          if (MutationArrayMethods.has(key)) return handlers.mutationArrayHandler;
+          if (ProducerArrayMethods.has(key)) return handlers.producerArrayHandler;
+          if (IterationArrayMethods.has(key)) return handlers.iterationHandler;
+          if (IteratorMethods.has(key)) return handlers.iteratorHandler;
+          if (LookupArrayMethods.has(key)) return handlers.lookupArrayHandler;
+          if (PickingArrayMethods.has(key)) return handlers.pickingArrayHandler;
+        }
+        if (isTypedArray(target) && MutationTypedArrayMethods.has(key)) {
+          return handlers.mutationArrayHandler;
+        }
         if (isCollection(target)) {
+          if (key === Keys.Get && isMapCollection(target)) return handlers.getHandler;
+          if (key === Keys.Set && isMapCollection(target)) return handlers.setHandler;
+          if (key === Keys.Add && isSetCollection(target)) return handlers.addHandler;
           if (key === Keys.Has) return handlers.hasHandler;
           if (key === Keys.Delete) return handlers.deleteHandler;
+          if (key === Keys.ForEach && isStrongCollection(target)) {
+            return handlers.iterationHandler;
+          }
+          if (IteratorMethods.has(key) && isStrongCollection(target)) {
+            return handlers.iteratorHandler;
+          }
         }
         return handlers.defaultHandler;
       }

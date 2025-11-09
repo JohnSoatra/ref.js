@@ -1,5 +1,4 @@
-import Keys from "../../../constants/keys";
-import { createCallbackArgs, createProxyTry } from "../../utils";
+import { createProxyTry, toRawArgs } from "../../utils";
 import { PickingArrayMethods } from "../../../constants/pickingMethods/array";
 import { CacheProxy } from "../../../types/createProxy";
 import { OnChangeHandler } from "../../../types/ref";
@@ -25,13 +24,8 @@ function pickingArrayHandler(
   onChange: OnChangeHandler,
   ...args: any[]
 ) {
-  let value: any;
-  if (key === Keys.At) {
-    value = target.at(args[0]);
-  } else {
-    const [predicate, ...restArgs] = createCallbackArgs(cache, onChange, ...args);
-    value = target[key](predicate, ...restArgs);
-  }
+  const rawArgs = toRawArgs(args);
+  const value = (target as any)[key].apply(target, rawArgs);
   return createProxyTry(value, cache, onChange);
 }
 

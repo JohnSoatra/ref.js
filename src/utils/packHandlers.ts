@@ -9,9 +9,10 @@ import defaultHandler from "./handlers/defaultHandler";
 import iterationHandler from "./handlers/iterationHandler";
 import iteratorHandler from "./handlers/iteratorHandler";
 import producerArrayHandler from "./handlers/array/producerHandler";
+import pickingArrayHandler from "./handlers/array/pickingHandler";
+import conflictArrayHandler from "./handlers/array/conflictHandler";
 import { CacheProxy } from "../types/createProxy";
 import { OnChangeHandler } from "../types/ref";
-import pickingArrayHandler from "./handlers/array/pickingHandler";
 
 /**
  * Packs and binds all handler functions with shared context.
@@ -34,7 +35,8 @@ export default function packHandlers(
   onChange: OnChangeHandler,
 ) {
   return {
-    mutationArrayHandler: (...args: any[]) => mutationArrayHandler(proxy, target, key, cache, onChange, ...args),
+    conflictArrayHandler: (...args: any[]) => conflictArrayHandler(proxy, target, key, cache, onChange, ...args),
+    mutationArrayHandler: (...args: any[]) => mutationArrayHandler(proxy, target, key, onChange, ...args),
     producerArrayHandler: (...args: any[]) => producerArrayHandler(target, key, cache, onChange, ...args),
     iterationHandler: (...args: any[]) => iterationHandler(target, key, cache, onChange, ...args),
     iteratorHandler: () => iteratorHandler(target, key, cache, onChange),

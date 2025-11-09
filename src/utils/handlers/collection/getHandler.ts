@@ -20,5 +20,7 @@ export default function getHandler(
   cache: CacheProxy,
   onChange: OnChangeHandler,
 ) {
-  return createProxyTry(target.get(getRawTry(key)), cache, onChange);
+  const rawKey = getRawTry(key);
+  const value = target.get(rawKey);
+  return createProxyTry(value, cache, onChange);
 }
