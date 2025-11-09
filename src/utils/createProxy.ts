@@ -8,6 +8,8 @@ import LookupArrayMethods from "../constants/lookupMethods/array";
 import PickingArrayMethods from "../constants/pickingMethods/array";
 import ConflictArrayMethods from "../constants/conflictMethods/array";
 import MutationTypedArrayMethods from "../constants/mutationMethods/typedArray";
+import IterationMapMethods from "../constants/iterationMethods/map";
+import IterationSetMethods from "../constants/iterationMethods/set";
 import packHandlers from "./packHandlers";
 import {
   isArray,
@@ -18,7 +20,6 @@ import {
   isForbiddenKey,
   removeCacheTry,
   isTypedArray,
-  isStrongCollection
 } from "./utils";
 import { CacheProxy } from "../types/createProxy";
 import { OnChangeHandler } from "../types/ref";
@@ -44,13 +45,10 @@ export default function createProxy<T extends Record<string, any>>(
   onChange: OnChangeHandler,
   saveProxy?: boolean,
 ) {
-  if (isProxy(content)) {
-    return content;
-  }
+  if (isProxy(content)) return content;
   const cachedProxy = cache.get(content);
-  if (cachedProxy) {
-    return cachedProxy;
-  }
+  if (cachedProxy) return cachedProxy;
+
   const proxy = new Proxy(content, {
     get(target: any, key: any, receiver) {
       if (key === Symbols.IsProxy) return true;
@@ -82,18 +80,28 @@ export default function createProxy<T extends Record<string, any>>(
         if (isTypedArray(target) && MutationTypedArrayMethods.has(key)) {
           return handlers.mutationArrayHandler;
         }
+        if (isMapCollection(target)) {
+          if (key === Keys.Get) return handlers.getHandler;
+          if (key === Keys.Set) return handlers.setHandler;
+        }
+        if (isSetCollection(target) && key === Keys.Add) {
+          return handlers.addHandler;
+        }
+        if (
+          (target instanceof Map && IterationMapMethods.has(key)) ||
+          (target instanceof Set && IterationSetMethods.has(key))
+        ) {
+          return handlers.iterationHandler;
+        }
+        if (
+          (target instanceof Map || target instanceof Set) &&
+          IteratorMethods.has(key)
+        ) {
+          return handlers.iteratorHandler;
+        }
         if (isCollection(target)) {
-          if (key === Keys.Get && isMapCollection(target)) return handlers.getHandler;
-          if (key === Keys.Set && isMapCollection(target)) return handlers.setHandler;
-          if (key === Keys.Add && isSetCollection(target)) return handlers.addHandler;
           if (key === Keys.Has) return handlers.hasHandler;
           if (key === Keys.Delete) return handlers.deleteHandler;
-          if (key === Keys.ForEach && isStrongCollection(target)) {
-            return handlers.iterationHandler;
-          }
-          if (IteratorMethods.has(key) && isStrongCollection(target)) {
-            return handlers.iteratorHandler;
-          }
         }
         return handlers.defaultHandler;
       }

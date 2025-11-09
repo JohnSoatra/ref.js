@@ -32,10 +32,6 @@ export function isSetCollection(target: object) {
   return target instanceof Set || target instanceof WeakSet;
 }
 
-export function isStrongCollection(target: object) {
-  return target instanceof Map || target instanceof Set;
-}
-
 export function isCollection(target: object) {
   return isMapCollection(target) || isSetCollection(target);
 }

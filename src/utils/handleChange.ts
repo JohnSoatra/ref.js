@@ -33,27 +33,25 @@ export default function handleChange(
   ticks: Ticks,
   options: RefOptions,
 ) {
-  if (options.onchange) {
-    const now = getNow();
-    if (now - ticks.latest > 16) {
-      ticks.tick = 0;
-      ticks.latest = now;
-    } else if (ticks.tick >= maxTick(options)) {
-      console.warn(maxTickMessage(options));
-    } else {
-      ticks.tick += 1;
-      ticks.latest = now;
-    }
-    if (!ticks.scheduled) {
-      ticks.scheduled = true;
-      nextFrame(() => {
-        ticks.scheduled = false;
-        try {
-          options.onchange?.(event);
-        } catch (error) {
-          console.error('[vref] onchange error:', error);
-        }
-      });
-    }
+  const now = getNow();
+  if (now - ticks.latest > 16) {
+    ticks.tick = 0;
+    ticks.latest = now;
+  } else if (ticks.tick >= maxTick(options)) {
+    console.warn(maxTickMessage(options));
+  } else {
+    ticks.tick += 1;
+    ticks.latest = now;
+  }
+  if (!ticks.scheduled) {
+    ticks.scheduled = true;
+    nextFrame(() => {
+      ticks.scheduled = false;
+      try {
+        options.onchange?.(event);
+      } catch (error) {
+        console.error('[vref] onchange error:', error);
+      }
+    });
   }
 }
