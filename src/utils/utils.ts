@@ -53,22 +53,6 @@ export function getWeakValue(target: WeakMap<any, any> | WeakSet<any>, key: any)
   return undefined;
 }
 
-export function nextFrame(callback: () => void) {
-  if (typeof requestAnimationFrame === 'function') {
-    return requestAnimationFrame(callback);
-  } else if (typeof setImmediate === 'function') {
-    return setImmediate(callback);
-  }
-  return setTimeout(callback, 0);
-}
-
-export function getNow() {
-  if (typeof performance !== 'undefined') {
-    return performance.now();
-  }
-  return Date.now();
-}
-
 export function getRawTry(value: any) {
   if (isCreatable(value) && isProxy(value)) {
     return getRaw(value);
@@ -84,16 +68,11 @@ export function createProxyTry(...args: Parameters<typeof createProxy>) {
   return value;
 }
 
-export function createOptions(onchangeOrOptions: OnChangeHandler | RefOptions | undefined) {
-  let options: RefOptions = {}
-  if (onchangeOrOptions) {
-    if (typeof onchangeOrOptions === 'function') {
-      options.onchange = onchangeOrOptions;
-    } else {
-      options = { ...onchangeOrOptions };
-    }
+export function toOptions(onchangeOrOptions: OnChangeHandler | RefOptions): RefOptions {
+  if (typeof onchangeOrOptions === 'function') {
+    return { onchange: onchangeOrOptions }
   }
-  return options;
+  return onchangeOrOptions;
 }
 
 export function removeCacheTry(value: any, cache: CacheProxy) {

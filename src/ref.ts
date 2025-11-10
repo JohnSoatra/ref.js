@@ -1,54 +1,36 @@
 import createProxy from './utils/createProxy';
-import handleChange from './utils/handleChange';
-import { getNow, createOptions } from './utils/utils';
-import { Ticks, OnChangeHandler, Ref, RefOptions, ChangeEvent } from './types/ref';
+import { toOptions } from './utils/utils';
+import { OnChangeHandler, Ref, RefOptions } from './types/ref';
 
 /**
  * Creates a reactive reference object with an onchange callback.
  *
- * The returned object has:
- * - `value`: the reactive value of type `T`. Any changes to this value or nested objects/arrays
- *   will trigger the `onchange` callback.
- * - `onchange`: callback function called whenever `value` changes.
- *
- * Example usage:
- * ```ts
- * const count = ref(0, (event) => console.log(event.value));
- * count.value = 5; // Triggers onchange
- * ```
+ * All refs require an onchange handler to handle changes.
  *
  * @param initial The initial value of the reactive reference.
  * @param onchange Callback to handle change events.
  * @returns A reactive reference object of type `Ref<T>`.
  */
-function ref<T>(initial: T, onchange?: OnChangeHandler): Ref<T>;
+function ref<T>(initial: T, onchange: OnChangeHandler): Ref<T>;
 
 /**
- * Creates a reactive reference object with configuration options.
+ * Creates a reactive reference object.
  *
- * The returned object has:
- * - `value`: the reactive value of type `T`.
- * - `onchange`: optional callback provided in options.
- * - `options`: allows configuring:
- *   - `cache`: optional WeakMap used to store raw–proxy mappings. 
- *     Useful when sharing the same reactive identity across multiple refs.
- *   - `maxTick`: maximum number of updates allowed per frame.
- *   - `maxTickMessage`: message displayed when maxTick is exceeded.
+ * - `value`: the reactive value.
+ * - `onchange`: called whenever the value or nested objects/arrays change.
+ * - `cache` (optional): WeakMap to store raw-to-proxy mappings, keeping object identity.
  *
- * Note: if you pass a custom `cache`, ensure it was created with `WeakMap<object, object>`.
- * Passing a non-WeakMap or mismatched cache may cause inconsistent reactivity.
- *
- * Example usage:
+ * Example:
  * ```ts
- * const count = ref(0, { maxTick: 100, maxTickMessage: 'Too many updates', onchange: (e) => console.log(e) });
- * count.value = 5; // Triggers onchange
+ * const count = ref(0, { onchange: (event) => console.log(event.value) });
+ * count.value = 5; // triggers onchange
  * ```
  *
- * @param initial The initial value of the reactive reference.
- * @param options Configuration object of type `RefOptions`.
- * @returns A reactive reference object of type `Ref<T>`.
+ * @param initial Initial value.
+ * @param options RefOptions with optional `onchange` and `cache`.
+ * @returns A reactive Ref object.
  */
-function ref<T>(initial: T, options?: RefOptions): Ref<T>;
+function ref<T>(initial: T, options: RefOptions): Ref<T>;
 
 /**
  * Creates a reactive reference object with an optional undefined initial value.
@@ -65,21 +47,10 @@ function ref<T>(initial: T, options?: RefOptions): Ref<T>;
  *
  * @returns A reactive reference object of type `Ref<T | undefined>`.
  */
-function ref<T = undefined>(): Ref<T | undefined>;
-function ref<T>(initial?: T, onchangeOrOptions?: OnChangeHandler | RefOptions): Ref<T | undefined> {
-  const options = createOptions(onchangeOrOptions);
+function ref<T>(initial: T, onchangeOrOptions: OnChangeHandler | RefOptions): Ref<T | undefined> {
+  const options = toOptions(onchangeOrOptions);
   const cache = options.cache ?? new WeakMap();
-  const pendingEvent: { value: ChangeEvent } = {} as any;
-  const ticks: Ticks = {
-    latest: getNow(),
-    tick: 0,
-    scheduled: false,
-  }
-  function onChangeHandler(event: ChangeEvent) {
-    pendingEvent.value = event;
-    handleChange(pendingEvent, ticks, options);
-  }
-  return createProxy({ value: initial }, cache, onChangeHandler);
+  return createProxy({ value: initial }, cache, options.onchange);
 }
 
 export default ref;
