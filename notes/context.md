@@ -35,4 +35,11 @@
 [{}].with(); // producer
 [{}][Symbol.iterator] // iterator
 
-// sort callback can be undefined
+### Array Methods
+//  sort's callback can be undefined
+
+### Object Methods
+//  cannot override getOwnPropertyDescriptor trap
+    because it is also used internally by object itself.
+//  can override defineProperty trap
+    because we can manage vai fromSetTrap variable.

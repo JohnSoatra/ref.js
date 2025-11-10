@@ -25,12 +25,12 @@ function maxTickMessage(options: RefOptions) {
  * - Schedules the `onchange` callback asynchronously via `nextFrame`.
  * - Logs a warning if updates exceed the allowed limit.
  *
- * @param event Change event triggered by proxy mutation.
+ * @param pendingEvent Holds pending event triggered by proxy mutation.
  * @param ticks Internal frame tick tracker.
  * @param options Ref configuration including onchange handler and maxTick settings.
  */
 export default function handleChange(
-  event: ChangeEvent,
+  pendingEvent: { value: ChangeEvent },
   ticks: Ticks,
   options: RefOptions,
 ) {
@@ -49,7 +49,7 @@ export default function handleChange(
     nextFrame(() => {
       ticks.scheduled = false;
       try {
-        options.onchange?.(event);
+        options.onchange?.(pendingEvent.value);
       } catch (error) {
         console.error('[vref] onchange error:', error);
       }

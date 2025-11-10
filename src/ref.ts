@@ -69,13 +69,15 @@ function ref<T = undefined>(): Ref<T | undefined>;
 function ref<T>(initial?: T, onchangeOrOptions?: OnChangeHandler | RefOptions): Ref<T | undefined> {
   const options = createOptions(onchangeOrOptions);
   const cache = options.cache ?? new WeakMap();
+  const pendingEvent: { value: ChangeEvent } = {} as any;
   const ticks: Ticks = {
     latest: getNow(),
     tick: 0,
     scheduled: false,
   }
   function onChangeHandler(event: ChangeEvent) {
-    handleChange(event, ticks, options);
+    pendingEvent.value = event;
+    handleChange(pendingEvent, ticks, options);
   }
   return createProxy({ value: initial }, cache, onChangeHandler);
 }

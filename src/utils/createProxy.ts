@@ -50,6 +50,7 @@ export default function createProxy<T extends Record<string, any>>(
   const cachedProxy = cache.get(content);
   if (cachedProxy) return cachedProxy;
 
+  let fromSetTrap = false;
   const proxy = new Proxy(content, {
     get(target: any, key: any, receiver) {
       if (key === Symbols.IsProxy) return true;
@@ -110,8 +111,10 @@ export default function createProxy<T extends Record<string, any>>(
       if (isForbiddenKey(key)) return true;
       const prevValue = target[key];
       if (!Object.is(prevValue, newValue)) {
-        const result = Reflect.set(target, key, newValue, receiver);
-        if (result) {
+        fromSetTrap = true;
+        const updated = Reflect.set(target, key, newValue, receiver);
+        fromSetTrap = false;
+        if (updated) {
           removeCacheTry(prevValue, cache);
           onChange({
             target: proxy,
@@ -121,7 +124,7 @@ export default function createProxy<T extends Record<string, any>>(
             prevValue,
           });
         }
-        return result;
+        return updated;
       };
       return true;
     },
@@ -130,8 +133,8 @@ export default function createProxy<T extends Record<string, any>>(
       const hasKey = Object.prototype.hasOwnProperty.call(target, key);
       if (hasKey) {
         const prevValue = target[key];
-        const result = Reflect.deleteProperty(target, key);
-        if (result) {
+        const deleted = Reflect.deleteProperty(target, key);
+        if (deleted) {
           removeCacheTry(prevValue, cache);
           onChange({
             target: proxy,
@@ -141,10 +144,32 @@ export default function createProxy<T extends Record<string, any>>(
             prevValue
           });
         }
-        return result;
+        return deleted;
       };
       return true;
-    }
+    },
+    defineProperty(target, key, attributes) {
+      if (isForbiddenKey(key)) return true;
+      const prevValue = target[key];
+      const defined = Reflect.defineProperty(target, key, attributes);
+      if (!fromSetTrap && defined) {
+        const newValue = attributes.value;
+        if (!Object.is(prevValue, newValue)) {
+          removeCacheTry(prevValue, cache);
+        }
+        onChange({
+          target: proxy,
+          action: 'define',
+          key,
+          value: newValue,
+          prevValue,
+        });
+      }
+      return defined;
+    },
+    setPrototypeOf() {
+      return true;
+    },
   });
   if (saveProxy ?? true) {
     cache.set(content, proxy);
