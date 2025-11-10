@@ -21,8 +21,10 @@
     "access": "public"
   },
   "scripts": {
-    "build": "rollup -c",
-    "watch": "rollup -c -w"
+    "clean": "rimraf dist",
+    "build:dev": "rollup -c --environment env:dev",
+    "build": "npm run clean && rollup -c --environment env:prod",
+    "watch": "rollup -c -w --environment env:dev"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.0",
@@ -30,6 +32,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.0",
     "chokidar": "^4.0.3",
+    "rimraf": "^6.1.0",
     "rollup": "^4.52.4",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-dts": "^6.2.3",
