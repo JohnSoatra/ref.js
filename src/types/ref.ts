@@ -38,10 +38,6 @@ export type RefOptions = {
    * ⚠️ Note: Passing an invalid or reused cache may cause unexpected proxy behavior.
    */
   cache?: WeakMap<object, object>;
-  /**
-   * Optional callback that is triggered whenever the Ref's value changes.
-   */
-  onchange: OnChangeHandler;
 };
 
 /**

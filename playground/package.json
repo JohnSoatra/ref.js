@@ -1,0 +1,10 @@
+{
+  "name": "playground",
+  "scripts": {
+    "test": "ts-node index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "typescript": "^5.9.3"
+  }
+}

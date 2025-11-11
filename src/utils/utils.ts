@@ -2,7 +2,7 @@ import Keys from "../constants/keys";
 import Symbols from "../constants/symbols";
 import createProxy from "./createProxy";
 import { CacheProxy } from "../types/createProxy";
-import { OnChangeHandler, RefOptions } from "../types/ref";
+import { OnChangeHandler } from "../types/ref";
 
 export function isForbiddenKey(key: any) {
   return Keys.ForbiddenKeys.has(key);
@@ -66,13 +66,6 @@ export function createProxyTry(...args: Parameters<typeof createProxy>) {
     return createProxy(...args);
   }
   return value;
-}
-
-export function toOptions(onchangeOrOptions: OnChangeHandler | RefOptions): RefOptions {
-  if (typeof onchangeOrOptions === 'function') {
-    return { onchange: onchangeOrOptions }
-  }
-  return onchangeOrOptions;
 }
 
 export function removeCacheTry(value: any, cache: CacheProxy) {
