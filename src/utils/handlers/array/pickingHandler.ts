@@ -19,6 +19,7 @@ import { OnChangeHandler } from "../../../types/ref";
  * @returns The proxied value returned by the picking method.
  */
 function pickingArrayHandler(
+  this: any,
   target: any[],
   key: PickingArrayMethods,
   cache: CacheProxy,
@@ -26,7 +27,7 @@ function pickingArrayHandler(
   ...args: any[]
 ) {
   const rawArgs = toRawArgs(args);
-  const value = (target as any)[key].apply(target, rawArgs);
+  const value = (target as any)[key].apply(this, rawArgs);
   return createProxyTry(value, cache, onChange);
 }
 

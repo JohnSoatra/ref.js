@@ -13,9 +13,11 @@ import { getRawTry } from "../../utils";
  * @returns `true` if the collection contains the key/value, `false` otherwise.
  */
 export default function hasHandler(
+  this: any,
   target: Map<any, any> | Set<any> | WeakMap<any, any> | WeakSet<any>,
-  key: object,
+  ...args: any[]
 ) {
+  const [key] = args;
   const rawKey = getRawTry(key);
-  return target.has(rawKey);
+  return target.has.call(this, rawKey);
 }

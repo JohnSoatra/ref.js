@@ -19,22 +19,23 @@ import { OnChangeHandler } from "../../../types/ref";
  * @returns `true` if the key/value was deleted, `false` otherwise.
  */
 export default function deleteHandler(
-  proxy: any,
+  this: any,
   target: Map<any, any> | Set<any> | WeakMap<any, any> | WeakSet<any>,
-  key: any,
   cache: CacheProxy,
   onChange: OnChangeHandler,
+  ...args: any[]
 ) {
+  const [key] = args;
   const rawKey = getRawTry(key);
   const prevValue = getWeakValue(target, rawKey);
-  const deleted = target.delete(rawKey);
+  const deleted = target.delete.call(this, rawKey);
   if (deleted) {
     removeCacheTry(rawKey, cache);
     if (isMapCollection(target)) {
       removeCacheTry(prevValue, cache);
     }
     onChange({
-      target: proxy,
+      target: this,
       action: 'delete',
       key,
       value: undefined,

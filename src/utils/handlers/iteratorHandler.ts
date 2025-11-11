@@ -20,11 +20,12 @@ import { OnChangeHandler } from "../../types/ref";
  * @returns A proxied iterator that yields reactive values.
  */
 export default function iteratorHandler(
+  this: any,
   target: any[] | TypedArray | Map<any, any> | Set<any>,
   key: IteratorMethods,
   cache: CacheProxy,
   onChange: OnChangeHandler,
 ): Iterator<any> & Iterable<any> {
-  const iterator = target[key]() as Iterator<any>;
+  const iterator = target[key].call(this) as Iterator<any>;
   return createProxiedIterator(iterator, cache, onChange);
 }

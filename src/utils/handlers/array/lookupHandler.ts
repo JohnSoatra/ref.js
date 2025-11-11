@@ -11,12 +11,13 @@ import { LookupArrayMethods } from "../../../constants/lookupMethods/array";
  * @returns The result of the array lookup operation.
  */
 function lookupArrayHandler(
+  this: any,
   target: any[],
   key: LookupArrayMethods,
   ...args: any[]
 ) {
-  const [searchElement, fromIndex] = toRawArgs(args);
-  return target[key](searchElement, fromIndex);
+  const rawArgs = toRawArgs(args);
+  return (target as any)[key].apply(this, rawArgs);
 }
 
 export default lookupArrayHandler;

@@ -21,6 +21,7 @@ import { OnChangeHandler } from "../../../types/ref";
  * @returns The proxied array or items returned by the producer method.
  */
 function producerArrayHandler(
+  this: any,
   target: any[],
   key: ProducerArrayMethods,
   cache: CacheProxy,
@@ -28,7 +29,7 @@ function producerArrayHandler(
   ...args: any[]
 ) {
   const rawArgs = toRawArgs(args);
-  const value = target[key].apply(target, rawArgs);
+  const value = target[key].apply(this, rawArgs);
   return toProxiedItems(value, cache, onChange);
 }
 

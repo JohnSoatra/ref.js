@@ -23,22 +23,22 @@ type MutationKey<T> = T extends any[] ?
  * @returns The result of the mutation, or the proxy itself if mutated in-place.
  */
 function mutationArrayHandler<T extends any[] | TypedArray>(
-  proxy: any,
+  this: any,
   target: T,
   key: MutationKey<T>,
   onChange: OnChangeHandler,
   ...args: any[]
 ) {
   const rawArgs = toRawArgs(args);
-  const result = (target as any)[key].apply(target, rawArgs);
+  const value = (target as any)[key].apply(this, rawArgs);
   onChange({
-    target: proxy,
+    target: this,
     action: key,
     key: undefined,
     value: args,
     prevValue: undefined
   });
-  return result === target ? proxy : result;
+  return value;
 }
 
 export default mutationArrayHandler;

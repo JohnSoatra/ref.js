@@ -38,16 +38,16 @@ function clearFromCache(target: Map<any, any> | Set<any>, cache: CacheProxy) {
  * @param onChange Callback triggered on mutation.
  */
 export default function clearHandler(
-  proxy: any,
+  this: any,
   target: Map<any, any> | Set<any>,
   cache: CacheProxy,
   onChange: OnChangeHandler,
 ) {
   if (target.size > 0) {
-    target.clear();
+    target.clear.call(this);
     clearFromCache(target, cache);
     onChange({
-      target: proxy,
+      target: this,
       action: 'clear',
       key: undefined,
       value: undefined,

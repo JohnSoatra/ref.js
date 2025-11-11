@@ -16,22 +16,23 @@ import { OnChangeHandler } from "../../../types/ref";
  * @returns The proxied Set/WeakSet.
  */
 export default function addHandler(
-  proxy: any,
+  this: any,
   target: Set<any> | WeakSet<any>,
-  value: any,
   onChange: OnChangeHandler,
+  ...args: any[]
 ) {
+  const [value] = args;
   const rawValue = getRawTry(value);
-  const hasValue = target.has(rawValue);
+  const hasValue = target.has.call(this, rawValue);
   if (!hasValue) {
-    target.add(rawValue);
+    target.add.call(this, rawValue);
     onChange({
-      target: proxy,
+      target: this,
       action: 'add',
       key: value,
       value,
       prevValue: undefined,
     });
   }
-  return proxy;
+  return this;
 }

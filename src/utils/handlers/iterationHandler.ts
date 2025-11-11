@@ -31,12 +31,13 @@ type IterationKey<T> =
  * @returns The result of the iteration method, preserving reactivity.
  */
 export default function iterationHandler<T extends any[] | TypedArray | Map<any, any> | Set<any>>(
+  this: any,
   target: T,
   key: IterationKey<T>,
   cache: CacheProxy,
   onChange: OnChangeHandler,
   ...args: any[]
 ) {
-  const [callbackFn, ...restArgs] = createCallbackArgs(cache, onChange, ...args);
-  return (target as any)[key](callbackFn, ...restArgs);
+  const callbackArgs = createCallbackArgs(cache, onChange, ...args);
+  return (target as any)[key].apply(this, callbackArgs);
 }

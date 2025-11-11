@@ -61,7 +61,7 @@ export function getRawTry(value: any) {
 }
 
 export function createProxyTry(...args: Parameters<typeof createProxy>) {
-  const value = args[0];
+  const [value] = args;
   if (isCreatable(value)) {
     return createProxy(...args);
   }
@@ -103,8 +103,8 @@ export function createCallbackArgs(cache: CacheProxy, onChange: OnChangeHandler,
 
 export function createProxiedIterator(iterator: Iterator<any>, cache: CacheProxy, onChange: OnChangeHandler) {
   return {
-    next(value?: any) {
-      const result = iterator.next(value);
+    next(this: any, value?: any) {
+      const result = iterator.next.call(this, value);
       if (!result.done) {
         result.value = createProxyTry(result.value, cache, onChange);
       }
@@ -114,11 +114,4 @@ export function createProxiedIterator(iterator: Iterator<any>, cache: CacheProxy
       return this;
     }
   }
-}
-
-export function proxiedFunc(func: Function, proxy: any, cache: CacheProxy, onChange: OnChangeHandler) {
-  return function (...args: any[]) {
-    const result = func.apply(proxy, args);
-    return createProxyTry(result, cache, onChange, false);
-  };
 }

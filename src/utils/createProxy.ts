@@ -69,7 +69,7 @@ export default function createProxy<T extends Record<string, any>>(
         if (isArray(value) || typeof value === 'object') {
           return createProxy(value, cache, onChange);
         }
-        const handlers = packHandlers(proxy, target, key, cache, onChange);
+        const handlers = packHandlers(target, key, cache, onChange);
         if (Array.isArray(target)) {
           if (ConflictArrayMethods.has(key)) return handlers.conflictArrayHandler;
           if (MutationArrayMethods.has(key)) return handlers.mutationArrayHandler;

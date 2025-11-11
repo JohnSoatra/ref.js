@@ -17,12 +17,14 @@ import { OnChangeHandler } from "../../../types/ref";
  * @returns The proxied value associated with the key, or undefined if not found.
  */
 export default function getHandler(
+  this: any,
   target: Map<any, any> | WeakMap<any, any>,
-  key: any,
   cache: CacheProxy,
   onChange: OnChangeHandler,
+  ...args: any[]
 ) {
+  const [key] = args;
   const rawKey = getRawTry(key);
-  const value = target.get(rawKey);
+  const value = target.get.call(this, rawKey);
   return createProxyTry(value, cache, onChange);
 }

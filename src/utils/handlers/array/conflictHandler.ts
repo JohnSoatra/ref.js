@@ -17,7 +17,7 @@ import { OnChangeHandler } from "../../../types/ref";
  * onChange callback when mutations occur.
  */
 function conflictArrayHandler(
-  proxy: any,
+  this: any,
   target: any[],
   key: ConflictArrayMethods,
   cache: CacheProxy,
@@ -32,8 +32,8 @@ function conflictArrayHandler(
     case "findLast":
     case "sort":
     case "toSorted":
-      const [callbackFn, ...restArgs] = createCallbackArgs(cache, onChange, ...args);
-      value = (target as any)[key](callbackFn, ...restArgs);
+      const callbackArgs = createCallbackArgs(cache, onChange, ...args);
+      value = (target as any)[key].apply(this, callbackArgs);
       switch (key) {
         // producer methods
         case "filter":
@@ -46,22 +46,22 @@ function conflictArrayHandler(
         // mutation methods
         case "sort":
           onChange({
-            target: proxy,
+            target: this,
             action: 'sort',
             key: undefined,
             value: args,
             prevValue: undefined
           });
-          return proxy;
+          return value;
       }
     // mutation methods
     case "pop":
     case "shift":
     case "splice":
       const rawArgs = toRawArgs(args);
-      value = (target as any)[key].apply(target, rawArgs);
+      value = (target as any)[key].apply(this, rawArgs);
       onChange({
-        target: proxy,
+        target: this,
         action: key,
         key: undefined,
         value: args,

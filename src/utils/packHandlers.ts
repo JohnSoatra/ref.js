@@ -29,26 +29,39 @@ import { OnChangeHandler } from "../types/ref";
  * @returns An object containing all pre-bound handler functions.
  */
 export default function packHandlers(
-  proxy: any,
   target: any,
   key: any,
   cache: CacheProxy,
   onChange: OnChangeHandler,
 ) {
   return {
-    conflictArrayHandler: (...args: any[]) => conflictArrayHandler(proxy, target, key, cache, onChange, ...args),
-    mutationArrayHandler: (...args: any[]) => mutationArrayHandler(proxy, target, key, onChange, ...args),
-    producerArrayHandler: (...args: any[]) => producerArrayHandler(target, key, cache, onChange, ...args),
-    iterationHandler: (...args: any[]) => iterationHandler(target, key, cache, onChange, ...args),
-    iteratorHandler: () => iteratorHandler(target, key, cache, onChange),
-    lookupArrayHandler: (...args: any[]) => lookupArrayHandler(target, key, ...args),
-    pickingArrayHandler: (...args: any[]) => pickingArrayHandler(target, key, cache, onChange, ...args),
-    getHandler: (getKey: any) => getHandler(target, getKey, cache, onChange),
-    setHandler: (setKey: any, setValue: any) => setHandler(proxy, target, setKey, setValue, cache, onChange),
-    addHandler: (addValue: any) => addHandler(proxy, target, addValue, onChange),
-    hasHandler: (hasKey: any) => hasHandler(target, hasKey),
-    deleteHandler: (deleteKey: any) => deleteHandler(proxy, target, deleteKey, cache, onChange),
-    clearHandler: () => clearHandler(proxy, target, cache, onChange),
-    defaultHandler: (...args: any[]) => defaultHandler(proxy, target, key, cache, onChange, ...args),
+    conflictArrayHandler: wrapHandler(conflictArrayHandler, target, key, cache, onChange),
+    mutationArrayHandler: wrapHandler(mutationArrayHandler, target, key, onChange),
+    producerArrayHandler: wrapHandler(producerArrayHandler, target, key, cache, onChange),
+    iterationHandler: wrapHandler(iterationHandler, target, key, cache, onChange),
+    iteratorHandler: wrapHandler(iteratorHandler, target, key, cache, onChange),
+    lookupArrayHandler: wrapHandler(lookupArrayHandler, target, key),
+    pickingArrayHandler: wrapHandler(pickingArrayHandler, target, key, cache, onChange),
+    getHandler: wrapHandler(getHandler, target, cache, onChange),
+    setHandler: wrapHandler(setHandler, target, cache, onChange),
+    addHandler: wrapHandler(addHandler, target, onChange),
+    hasHandler: wrapHandler(hasHandler, target),
+    deleteHandler: wrapHandler(deleteHandler, target, cache, onChange),
+    clearHandler: wrapHandler(clearHandler, target, cache, onChange),
+    defaultHandler: wrapHandler(defaultHandler, target, key),
   }
+}
+function trackApply(func: Function) {
+  return new Proxy(func, {
+    apply(target, thisArg, argArray) {
+      console.log('in apply');
+      return Reflect.apply(target, thisArg, argArray);
+    },
+  });
+}
+function wrapHandler<T extends ((...args: any[]) => any)>(handler: T, ...params: Parameters<T>) {
+  const func = function (this: any, ...args: any[]) {
+    handler.apply(this, params.concat(args));
+  }
+  return trackApply(func);
 }

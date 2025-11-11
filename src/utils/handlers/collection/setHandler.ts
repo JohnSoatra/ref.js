@@ -20,26 +20,26 @@ import { OnChangeHandler } from "../../../types/ref";
  * @returns The proxy object.
  */
 export default function setHandler(
-  proxy: any,
+  this: any,
   target: Map<any, any> | WeakMap<any, any>,
-  key: any,
-  value: any,
   cache: CacheProxy,
   onChange: OnChangeHandler,
+  ...args: any[]
 ) {
+  const [key, value] = args;
   const rawKey = getRawTry(key);
   const rawValue = getRawTry(value);
-  const prevValue = target.get(rawKey);
+  const prevValue = target.get.call(this, rawKey);
   if (!Object.is(rawValue, prevValue)) {
-    target.set(rawKey, rawValue);
+    target.set.call(this, rawKey, rawValue);
     removeCacheTry(prevValue, cache);
     onChange({
-      target: proxy,
+      target: this,
       action: 'set',
       key,
       value,
       prevValue,
     });
   }
-  return proxy;
+  return this;
 }
