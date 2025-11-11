@@ -1,5 +1,6 @@
-import { getRawTry } from "../../utils";
+import { getRawTry, isProxy } from "../../utils";
 import { OnChangeHandler } from "../../../types/ref";
+import { CacheProxy } from "../../../types/createProxy";
 
 /**
  * Handles adding a value to a Set or WeakSet.
@@ -18,6 +19,7 @@ import { OnChangeHandler } from "../../../types/ref";
 export default function addHandler(
   this: any,
   target: Set<any> | WeakSet<any>,
+  cache: CacheProxy,
   onChange: OnChangeHandler,
   ...args: any[]
 ) {
@@ -26,13 +28,15 @@ export default function addHandler(
   const hasValue = target.has.call(this, rawValue);
   if (!hasValue) {
     target.add.call(this, rawValue);
-    onChange({
-      target: this,
-      action: 'add',
-      key: value,
-      value,
-      prevValue: undefined,
-    });
+    if (cache.has(this)) {
+      onChange({
+        target: this,
+        action: 'add',
+        key: value,
+        value,
+        prevValue: undefined,
+      });
+    }
   }
   return this;
 }

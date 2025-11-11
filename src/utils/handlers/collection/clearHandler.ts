@@ -46,12 +46,14 @@ export default function clearHandler(
   if (target.size > 0) {
     target.clear.call(this);
     clearFromCache(target, cache);
-    onChange({
-      target: this,
-      action: 'clear',
-      key: undefined,
-      value: undefined,
-      prevValue: undefined,
-    });
+    if (cache.has(this)) {
+      onChange({
+        target: this,
+        action: 'clear',
+        key: undefined,
+        value: undefined,
+        prevValue: undefined,
+      });
+    }
   }
 }

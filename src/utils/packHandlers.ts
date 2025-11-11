@@ -12,6 +12,7 @@ import iteratorHandler from "./handlers/iteratorHandler";
 import producerArrayHandler from "./handlers/array/producerHandler";
 import pickingArrayHandler from "./handlers/array/pickingHandler";
 import conflictArrayHandler from "./handlers/array/conflictHandler";
+import { passThis } from "./utils";
 import { CacheProxy } from "../types/createProxy";
 import { OnChangeHandler } from "../types/ref";
 
@@ -35,33 +36,19 @@ export default function packHandlers(
   onChange: OnChangeHandler,
 ) {
   return {
-    conflictArrayHandler: wrapHandler(conflictArrayHandler, target, key, cache, onChange),
-    mutationArrayHandler: wrapHandler(mutationArrayHandler, target, key, onChange),
-    producerArrayHandler: wrapHandler(producerArrayHandler, target, key, cache, onChange),
-    iterationHandler: wrapHandler(iterationHandler, target, key, cache, onChange),
-    iteratorHandler: wrapHandler(iteratorHandler, target, key, cache, onChange),
-    lookupArrayHandler: wrapHandler(lookupArrayHandler, target, key),
-    pickingArrayHandler: wrapHandler(pickingArrayHandler, target, key, cache, onChange),
-    getHandler: wrapHandler(getHandler, target, cache, onChange),
-    setHandler: wrapHandler(setHandler, target, cache, onChange),
-    addHandler: wrapHandler(addHandler, target, onChange),
-    hasHandler: wrapHandler(hasHandler, target),
-    deleteHandler: wrapHandler(deleteHandler, target, cache, onChange),
-    clearHandler: wrapHandler(clearHandler, target, cache, onChange),
-    defaultHandler: wrapHandler(defaultHandler, target, key),
+    conflictArrayHandler: passThis(conflictArrayHandler, target, key, cache, onChange),
+    mutationArrayHandler: passThis(mutationArrayHandler, target, key, onChange),
+    producerArrayHandler: passThis(producerArrayHandler, target, key, cache, onChange),
+    iterationHandler: passThis(iterationHandler, target, key, cache, onChange),
+    iteratorHandler: passThis(iteratorHandler, target, key, cache, onChange),
+    lookupArrayHandler: passThis(lookupArrayHandler, target, key),
+    pickingArrayHandler: passThis(pickingArrayHandler, target, key, cache, onChange),
+    getHandler: passThis(getHandler, target, cache, onChange),
+    setHandler: passThis(setHandler, target, cache, onChange),
+    addHandler: passThis(addHandler, target, cache, onChange),
+    hasHandler: passThis(hasHandler, target),
+    deleteHandler: passThis(deleteHandler, target, cache, onChange),
+    clearHandler: passThis(clearHandler, target, cache, onChange),
+    defaultHandler: passThis(defaultHandler, target, key),
   }
-}
-function trackApply(func: Function) {
-  return new Proxy(func, {
-    apply(target, thisArg, argArray) {
-      console.log('in apply');
-      return Reflect.apply(target, thisArg, argArray);
-    },
-  });
-}
-function wrapHandler<T extends ((...args: any[]) => any)>(handler: T, ...params: Parameters<T>) {
-  const func = function (this: any, ...args: any[]) {
-    handler.apply(this, params.concat(args));
-  }
-  return trackApply(func);
 }

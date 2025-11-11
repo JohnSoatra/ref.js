@@ -33,13 +33,15 @@ export default function setHandler(
   if (!Object.is(rawValue, prevValue)) {
     target.set.call(this, rawKey, rawValue);
     removeCacheTry(prevValue, cache);
-    onChange({
-      target: this,
-      action: 'set',
-      key,
-      value,
-      prevValue,
-    });
+    if (cache.has(this)) {
+      onChange({
+        target: this,
+        action: 'set',
+        key,
+        value,
+        prevValue,
+      });
+    }
   }
   return this;
 }

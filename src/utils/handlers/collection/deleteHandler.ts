@@ -34,13 +34,15 @@ export default function deleteHandler(
     if (isMapCollection(target)) {
       removeCacheTry(prevValue, cache);
     }
-    onChange({
-      target: this,
-      action: 'delete',
-      key,
-      value: undefined,
-      prevValue
-    });
+    if (cache.has(this)) {
+      onChange({
+        target: this,
+        action: 'delete',
+        key,
+        value: undefined,
+        prevValue
+      });
+    }
   }
   return deleted;
 }

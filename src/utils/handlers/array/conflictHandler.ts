@@ -1,4 +1,4 @@
-import { createCallbackArgs, createProxyTry, toProxiedItems, toRawArgs } from "../../utils";
+import { createCallbackArgs, createProxyTry, removeFlag, toProxiedItems, toRawArgs, addFlag } from "../../utils";
 import { ConflictArrayMethods } from "../../../constants/conflictMethods/array";
 import { CacheProxy } from "../../../types/createProxy";
 import { OnChangeHandler } from "../../../types/ref";
@@ -33,7 +33,9 @@ function conflictArrayHandler(
     case "sort":
     case "toSorted":
       const callbackArgs = createCallbackArgs(cache, onChange, ...args);
+      addFlag(this, 'batch');
       value = (target as any)[key].apply(this, callbackArgs);
+      removeFlag(this, 'batch');
       switch (key) {
         // producer methods
         case "filter":
@@ -59,7 +61,9 @@ function conflictArrayHandler(
     case "shift":
     case "splice":
       const rawArgs = toRawArgs(args);
+      addFlag(this, 'batch');
       value = (target as any)[key].apply(this, rawArgs);
+      removeFlag(this, 'batch');
       onChange({
         target: this,
         action: key,
