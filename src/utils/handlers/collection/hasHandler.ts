@@ -1,4 +1,5 @@
 import { getRawTry } from "../../utils";
+import { CacheProxy } from "../../../types/createProxy";
 
 /**
  * Checks whether a key exists in a Map, Set, WeakMap, or WeakSet.
@@ -8,12 +9,19 @@ import { getRawTry } from "../../utils";
  * - Works with all supported collections: Map, Set, WeakMap, WeakSet.
  * - Returns a boolean indicating presence.
  */
-export default function hasHandler(
-  this: any,
-  target: Map<any, any> | Set<any> | WeakMap<any, any> | WeakSet<any>,
+export default function hasHandler<T extends
+  | Map<any, any>
+  | Set<any>
+  | WeakMap<any, any>
+  | WeakSet<any>
+>(
+  this: T,
+  target: T,
+  cache: CacheProxy,
   ...args: any[]
 ) {
+  const isProxied = cache.has(this);
   const [key] = args;
-  const rawKey = getRawTry(key);
+  const rawKey = isProxied ? getRawTry(key) : key;
   return target.has.call(this, rawKey);
 }

@@ -1,4 +1,4 @@
-import { getWeakValue, getRawTry, removeCacheTry, isMapCollection } from "../../utils";
+import { getWeakValue, getRawTry } from "../../utils";
 import { CacheProxy } from "../../../types/createProxy";
 import { OnChangeHandler } from "../../../types/ref";
 
@@ -11,22 +11,27 @@ import { OnChangeHandler } from "../../../types/ref";
  * - Removes any cached proxies for the deleted key and, if applicable, the value.
  * - Triggers `onChange` only if deletion actually occurs.
  */
-export default function deleteHandler(
-  this: any, //expects raw object
-  target: Map<any, any> | Set<any> | WeakMap<any, any> | WeakSet<any>,
+export default function deleteHandler<T extends
+  | Map<any, any>
+  | Set<any>
+  | WeakMap<any, any>
+  | WeakSet<any>
+>(
+  //expects raw object
+  this: T,
+  target: T,
   cache: CacheProxy,
   onChange: OnChangeHandler,
   ...args: any[]
 ) {
+  const proxy = cache.get(this);
   const [key] = args;
-  const rawKey = getRawTry(key);
-  const prevValue = getWeakValue(target, rawKey);
+  const rawKey = proxy ? getRawTry(key) : key;
+  const prevValue = getWeakValue(this, rawKey);
   const deleted = target.delete.call(this, rawKey);
-  if (deleted) {
-    removeCacheTry(rawKey, cache);
-    isMapCollection(target) && removeCacheTry(prevValue, cache);
-    cache.has(this) && onChange({
-      target: this,
+  if (deleted && proxy) {
+    onChange({
+      target: proxy,
       action: 'delete',
       key,
       value: undefined,

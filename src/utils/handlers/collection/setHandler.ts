@@ -1,4 +1,4 @@
-import { removeCacheTry, getRawTry } from "../../utils";
+import {  getRawTry } from "../../utils";
 import { CacheProxy } from "../../../types/createProxy";
 import { OnChangeHandler } from "../../../types/ref";
 
@@ -11,27 +11,28 @@ import { OnChangeHandler } from "../../../types/ref";
  * - Removes any cached proxy associated with the previous value to prevent memory leaks.
  * - Returns the proxy for chaining.
  */
-export default function setHandler(
-  this: any, //expects raw object
-  target: Map<any, any> | WeakMap<any, any>,
+export default function setHandler<T extends Map<any, any> | WeakMap<any, any>>(
+  //expects raw object
+  this: T,
+  target: T,
   cache: CacheProxy,
   onChange: OnChangeHandler,
   ...args: any[]
 ) {
+  const proxy = cache.get(this);
   const [key, value] = args;
-  const rawKey = getRawTry(key);
-  const rawValue = getRawTry(value);
+  const rawKey = proxy ? getRawTry(key) : key;
+  const rawValue = proxy ? getRawTry(value) : value;
   const prevValue = target.get.call(this, rawKey);
   if (!Object.is(rawValue, prevValue)) {
     target.set.call(this, rawKey, rawValue);
-    removeCacheTry(prevValue, cache);
-    cache.has(this) && onChange({
-      target: this,
+    proxy && onChange({
+      target: proxy,
       action: 'set',
       key,
       value,
       prevValue,
     });
   }
-  return this;
+  return proxy ?? this;
 }

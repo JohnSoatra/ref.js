@@ -60,19 +60,14 @@ export function getRawTry(value: any) {
   return value;
 }
 
-export function createProxyTry(...args: Parameters<typeof createProxy>) {
+export function createProxyTry<T extends object>(
+  ...args: Parameters<typeof createProxy<T>>
+) {
   const [value] = args;
   if (isObject(value)) {
     return createProxy(...args);
   }
   return value;
-}
-
-export function removeCacheTry(value: any, cache: CacheProxy) {
-  if (isObject(value)) {
-    return cache.delete(value);
-  }
-  return false;
 }
 
 export function toRawArgs(args: any[]) {
@@ -105,24 +100,6 @@ export function checkCache(value: any, cache: CacheProxy) {
   if (isObject(value) && isProxy(value)) {
     cache.set(getRaw(value), value);
   }
-}
-
-export function createProxiedIterator(iterator: Iterator<any>, cache: CacheProxy, onChange: OnChangeHandler) {
-  const proxiedIterator = {
-    next(this: any, value?: any) {
-      const matchedThis = this === proxiedIterator ? iterator : this;
-      const rawThis = getRawTry(matchedThis);
-      const result = iterator.next.call(rawThis, value);
-      if (!result.done) {
-        result.value = createProxyTry(result.value, cache, onChange);
-      }
-      return result;
-    },
-    [Symbol.iterator](this: any) {
-      return getRawTry(this);
-    }
-  }
-  return proxiedIterator;
 }
 
 export function isPlainObject(value: any): boolean {

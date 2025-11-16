@@ -1,26 +1,5 @@
-import { isMapCollection, removeCacheTry } from "../../utils";
 import { CacheProxy } from "../../../types/createProxy";
 import { OnChangeHandler } from "../../../types/ref";
-
-/**
- * Removes cached proxies for a Map or Set and its entries/values.
- *
- * - For Map, removes both keys and values from the cache.
- * - For Set, removes each value from the cache.
- */
-function clearFromCache(target: Map<any, any> | Set<any>, cache: CacheProxy) {
-  removeCacheTry(target, cache);
-  if (isMapCollection(target)) {
-    for (const [key, value] of target) {
-      removeCacheTry(key, cache);
-      removeCacheTry(value, cache);
-    }
-  } else {
-    for (const value of target) {
-      removeCacheTry(value, cache);
-    }
-  }
-}
 
 /**
  * Handles the `clear()` method for reactive Map/Set.
@@ -29,17 +8,18 @@ function clearFromCache(target: Map<any, any> | Set<any>, cache: CacheProxy) {
  * - Removes all entries from the proxy cache.
  * - Triggers the `onChange` callback if the collection was non-empty.
  */
-export default function clearHandler(
-  this: any, //expects raw object
-  target: Map<any, any> | Set<any>,
+export default function clearHandler<T extends Map<any, any> | Set<any>>(
+  //expects raw object
+  this: T,
+  target: T,
   cache: CacheProxy,
   onChange: OnChangeHandler,
 ) {
-  if (target.size > 0) {
+  if (this.size > 0) {
+    const proxy = cache.get(this);
     target.clear.call(this);
-    clearFromCache(target, cache);
-    cache.has(this) && onChange({
-      target: this,
+    proxy && onChange({
+      target: proxy,
       action: 'clear',
       key: undefined,
       value: undefined,

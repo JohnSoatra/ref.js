@@ -18,7 +18,6 @@ import {
   isSetCollection,
   isCollection,
   isForbiddenKey,
-  removeCacheTry,
   isTypedArray,
   isStrongCollection
 } from "./utils";
@@ -40,7 +39,7 @@ import { OnChangeHandler } from "../types/ref";
  * @param saveProxy Whether to store the proxy in cache (defaults to true).
  * @returns A reactive Proxy wrapping the original content.
  */
-export default function createProxy<T extends Record<string, any>>(
+export default function createProxy<T extends object>(
   content: T,
   cache: CacheProxy,
   onChange: OnChangeHandler,
@@ -115,7 +114,6 @@ export default function createProxy<T extends Record<string, any>>(
         const updated = Reflect.set(target, key, newValue, receiver);
         fromSetTrap = false;
         if (updated) {
-          removeCacheTry(prevValue, cache);
           onChange({
             target: proxy,
             action: 'set',
@@ -135,7 +133,6 @@ export default function createProxy<T extends Record<string, any>>(
         const prevValue = target[key];
         const deleted = Reflect.deleteProperty(target, key);
         if (deleted) {
-          removeCacheTry(prevValue, cache);
           onChange({
             target: proxy,
             action: 'delete',
@@ -155,15 +152,14 @@ export default function createProxy<T extends Record<string, any>>(
       if (!fromSetTrap && defined) {
         const newValue = attributes.value;
         if (!Object.is(prevValue, newValue)) {
-          removeCacheTry(prevValue, cache);
+          onChange({
+            target: proxy,
+            action: 'define',
+            key,
+            value: newValue,
+            prevValue,
+          });
         }
-        onChange({
-          target: proxy,
-          action: 'define',
-          key,
-          value: newValue,
-          prevValue,
-        });
       }
       return defined;
     },

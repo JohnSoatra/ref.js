@@ -1,5 +1,5 @@
-import { createCallbackArgs, createProxyTry, toProxiedItems, toRawArgs } from "../../utils";
 import { ConflictArrayMethods } from "../../../constants/conflictMethods/array";
+import { createCallbackArgs, createProxyTry, toProxiedItems, toRawArgs } from "../../utils";
 import { CacheProxy } from "../../../types/createProxy";
 import { OnChangeHandler } from "../../../types/ref";
 
@@ -16,14 +16,16 @@ import { OnChangeHandler } from "../../../types/ref";
  * This handler ensures that the returned values maintain reactivity and properly trigger the
  * onChange callback when mutations occur.
  */
-export default function conflictArrayHandler(
-  this: any,
-  target: any[],
-  key: ConflictArrayMethods,
+export default function conflictArrayHandler<T extends any[]>(
+  // expects raw object
+  this: T,
+  target: T,
   cache: CacheProxy,
+  key: ConflictArrayMethods,
   onChange: OnChangeHandler,
   ...args: any[]
 ) {
+  const proxy = cache.get(this);
   let value: any;
   switch (key) {
     // iteration methods
@@ -32,36 +34,36 @@ export default function conflictArrayHandler(
     case "findLast":
     case "sort":
     case "toSorted":
-      const callbackArgs = createCallbackArgs(cache, onChange, ...args);
+      const callbackArgs = proxy ? createCallbackArgs(cache, onChange, ...args) : args;
       value = (target as any)[key].apply(this, callbackArgs);
       switch (key) {
         // producer methods
         case "filter":
         case "toSorted":
-          return toProxiedItems(value, cache, onChange);
+          return proxy ? toProxiedItems(value, cache, onChange) : value;
         // picking methods
         case "find":
         case "findLast":
-          return createProxyTry(value, cache, onChange);
+          return proxy ? createProxyTry(value, cache, onChange) : value;
         // mutation methods
         case "sort":
-          cache.has(this) && onChange({
-            target: this,
+          proxy && onChange({
+            target: proxy,
             action: 'sort',
             key: undefined,
             value: args,
             prevValue: undefined
           });
-          return value;
+          return proxy ?? this;
       }
     // mutation methods
     case "pop":
     case "shift":
     case "splice":
-      const rawArgs = toRawArgs(args);
+      const rawArgs = proxy ? toRawArgs(args) : args;
       value = (target as any)[key].apply(this, rawArgs);
-      cache.has(this) && onChange({
-        target: this,
+      proxy && onChange({
+        target: proxy,
         action: key,
         key: undefined,
         value: args,
@@ -71,10 +73,10 @@ export default function conflictArrayHandler(
         // picking methods
         case "pop":
         case "shift":
-          return createProxyTry(value, cache, onChange, false);
+          return proxy ? createProxyTry(value, cache, onChange, false) : value;
         // producer methods
         case "splice":
-          return toProxiedItems(value, cache, onChange);
+          return proxy ? toProxiedItems(value, cache, onChange) : value;
       }
   }
 }

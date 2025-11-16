@@ -1,5 +1,5 @@
-import { createProxyTry, toRawArgs } from "../../utils";
 import { PickingArrayMethods } from "../../../constants/pickingMethods/array";
+import { createProxyTry, toRawArgs } from "../../utils";
 import { CacheProxy } from "../../../types/createProxy";
 import { OnChangeHandler } from "../../../types/ref";
 
@@ -11,15 +11,17 @@ import { OnChangeHandler } from "../../../types/ref";
  * - Wraps the returned value in a proxy if it's a creatable object.
  * - Returns `undefined` or the proxied result.
  */
-export default function pickingArrayHandler(
-  this: any,
-  target: any[],
-  key: PickingArrayMethods,
+export default function pickingArrayHandler<T extends any[]>(
+  // expects raw object
+  this: T,
+  target: T,
   cache: CacheProxy,
+  key: PickingArrayMethods,
   onChange: OnChangeHandler,
   ...args: any[]
 ) {
-  const rawArgs = toRawArgs(args);
+  const isProxied = cache.has(this);
+  const rawArgs = isProxied ? toRawArgs(args) : args;
   const value = (target as any)[key].apply(this, rawArgs);
-  return createProxyTry(value, cache, onChange);
+  return isProxied ? createProxyTry(value, cache, onChange) : value;
 }

@@ -1,8 +1,7 @@
-import { createCallbackArgs } from "../utils";
 import { IterationArrayMethods } from "../../constants/iterationMethods/array";
 import { IterationMapMethods } from "../../constants/iterationMethods/map";
 import { IterationSetMethods } from "../../constants/iterationMethods/set";
-import { TypedArray } from "../../types/types";
+import { createCallbackArgs } from "../utils";
 import { CacheProxy } from "../../types/createProxy";
 import { OnChangeHandler } from "../../types/ref";
 
@@ -15,7 +14,7 @@ type IterationKey<T> =
 
 /**
  * Handles iteration methods like `forEach`, `map`, `filter`, `some`, `every`, etc.
- * for Arrays, TypedArrays, Maps, and Sets — ensuring their callbacks receive
+ * for Arrays, Maps, and Sets — ensuring their callbacks receive
  * proxied (reactive) elements.
  *
  * Behavior:
@@ -23,14 +22,16 @@ type IterationKey<T> =
  * - Calls the native iteration method with the wrapped callback and remaining args.
  * - Works with arrays, typed arrays, Maps, and Sets.
  */
-export default function iterationHandler<T extends any[] | TypedArray | Map<any, any> | Set<any>>(
-  this: any,
+export default function iterationHandler<T extends any[] | Map<any, any> | Set<any>>(
+  //expects raw object
+  this: T,
   target: T,
-  key: IterationKey<T>,
   cache: CacheProxy,
+  key: IterationKey<T>,
   onChange: OnChangeHandler,
   ...args: any[]
 ) {
-  const callbackArgs = createCallbackArgs(cache, onChange, ...args);
+  const isProxied = cache.has(this);
+  const callbackArgs = isProxied ? createCallbackArgs(cache, onChange, ...args) : args;
   return (target as any)[key].apply(this, callbackArgs);
 }

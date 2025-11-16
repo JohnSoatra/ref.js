@@ -10,15 +10,17 @@ import { OnChangeHandler } from "../../../types/ref";
  * - If the retrieved value is creatable (object/array), wraps it in a proxy to maintain reactivity.
  * - Does not modify the original collection.
  */
-export default function getHandler(
-  this: any,
-  target: Map<any, any> | WeakMap<any, any>,
+export default function getHandler<T extends Map<any, any> | WeakMap<any, any>>(
+  // expects raw object,
+  this: T,
+  target: T,
   cache: CacheProxy,
   onChange: OnChangeHandler,
   ...args: any[]
 ) {
+  const isProxied = cache.has(this);
   const [key] = args;
-  const rawKey = getRawTry(key);
+  const rawKey = isProxied ? getRawTry(key) : key;
   const value = target.get.call(this, rawKey);
-  return createProxyTry(value, cache, onChange);
+  return isProxied ? createProxyTry(value, cache, onChange) : value;
 }
